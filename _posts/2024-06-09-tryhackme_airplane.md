@@ -1,6 +1,6 @@
 ---
-title: 'TryHackMe: Airplane'
-author: jaxafed
+title: 'TryHackMe : Airplane'
+author: kofy
 categories: [TryHackMe]
 tags: [web, file disclosure, gdb, suid, sudo]
 render_with_liquid: false

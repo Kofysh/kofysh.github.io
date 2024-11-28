@@ -1,6 +1,6 @@
 ---
-title: 'TryHackMe: mKingdom'
-author: jaxafed
+title: 'TryHackMe : mKingdom'
+author: kofy
 categories: [TryHackMe]
 tags: [web, fuzzing, weak credentials, concrete5, cms, rce, suid, cron, hosts]
 render_with_liquid: false
