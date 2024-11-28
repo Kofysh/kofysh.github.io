@@ -1,6 +1,6 @@
 ---
-title: 'TryHackMe: CyberLens'
-author: jaxafed
+title: 'TryHackMe : CyberLens'
+author: kofy
 categories: [TryHackMe]
 tags: [web, windows, rce, command injection, privilege esclation]
 render_with_liquid: false
