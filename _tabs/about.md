@@ -12,7 +12,7 @@ Ici, je partage des articles sur l'**auto-hébergement**, le **homelab** et l'**
 
 ## Mon infrastructure
 
-Tous mes services tournent sur trois serveurs physiques sous [Proxmox VE](https://www.proxmox.com/), hébergés en France sur une connexion 5 Gbit/s via [Free](https://www.free.fr/).
+Tous mes services tournent sur trois serveurs physiques sous [Proxmox VE](https://www.proxmox.com/), hébergés en France sur une connexion 8 Gbit/s via [Free](https://www.free.fr/).
 
 ### HPE ProLiant DL380 Gen10
 
