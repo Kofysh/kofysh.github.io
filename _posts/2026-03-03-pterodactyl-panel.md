@@ -104,9 +104,37 @@ chmod +x /usr/local/bin/wings
 
 Dans le Panel, va dans **Admin > Nodes > Créer un nœud**, configure-le, puis copie le fichier de configuration généré dans `/etc/pterodactyl/config.yml`.
 
+Crée le service systemd pour Wings :
+
+```bash
+sudo nano /etc/systemd/system/wings.service
+```
+
+```ini
+[Unit]
+Description=Pterodactyl Wings Daemon
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=root
+WorkingDirectory=/etc/pterodactyl
+LimitNOFILE=4096
+PIDFile=/var/run/wings/daemon.pid
+ExecStart=/usr/local/bin/wings
+Restart=on-failure
+StartLimitInterval=180
+StartLimitBurst=30
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+```
+
 Démarre Wings :
 
 ```bash
+sudo systemctl daemon-reload
 sudo systemctl enable --now wings
 ```
 

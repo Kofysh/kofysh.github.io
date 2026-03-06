@@ -116,6 +116,7 @@ WorkingDirectory=/home/minecraft/server
 ExecStart=/usr/bin/java -Xms1G -Xmx3G -jar server.jar nogui
 Restart=on-failure
 RestartSec=5
+StandardInput=null
 
 [Install]
 WantedBy=multi-user.target
@@ -148,3 +149,9 @@ sudo ufw reload
 Ton serveur est maintenant accessible ! Dans Minecraft, va dans **Multijoueur > Ajouter un serveur** et entre l'adresse IP de ton serveur suivi de `:25565`.
 
 > Pour trouver l'IP de ton serveur : `curl ifconfig.me`
+
+## Aller plus loin
+
+- **Sauvegardes automatiques** : mets en place un cron job ou un script pour copier régulièrement le dossier `world/`
+- **Performances** : pour les serveurs avec beaucoup de joueurs, utilise [PaperMC](https://papermc.io/) au lieu du serveur vanilla
+- **Plugins** : avec PaperMC, tu peux ajouter des plugins pour la protection du spawn, les permissions, etc.
