@@ -105,9 +105,30 @@ docker compose up -d
 
 Ton site est maintenant accessible en HTTPS sur `https://monsite.mondomaine.fr` avec un certificat valide généré automatiquement. ✅
 
-## 4. Visualiser le dashboard
+## 4. Sécuriser le dashboard
 
-Traefik propose un dashboard pour voir tous tes services et leurs statuts. Accède-y sur `https://traefik.mondomaine.fr`.
+Par défaut, le dashboard Traefik est accessible sans authentification. Ajoute un middleware `basicAuth` pour le protéger.
+
+Génère un mot de passe hashé :
+
+```bash
+sudo apt install -y apache2-utils
+echo $(htpasswd -nb admin MOT_DE_PASSE_FORT) | sed -e s/\\$/\\$\\$/g
+```
+
+Puis ajoute ces labels au service `traefik` dans ton `docker-compose.yml` :
+
+```yaml
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.dashboard.rule=Host(`traefik.mondomaine.fr`)"
+  - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+  - "traefik.http.routers.dashboard.service=api@internal"
+  - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+  - "traefik.http.middlewares.dashboard-auth.basicauth.users=admin:HASH_GENERE"
+```
+
+> Ne laisse **jamais** le dashboard exposé sans authentification en production.
 
 ## Commandes utiles
 

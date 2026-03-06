@@ -21,6 +21,8 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
+> Pour une installation plus sécurisée, tu peux suivre le [guide officiel](https://docs.docker.com/engine/install/) plutôt que le script `get.docker.com`.
+
 ## 2. Créer le fichier docker-compose
 
 Crée un dossier de travail :
@@ -106,3 +108,10 @@ docker compose pull && docker compose up -d
 ```
 
 > Les données du serveur (monde, configs, plugins) sont sauvegardées dans le dossier `./data` sur ton hôte.
+
+## Aller plus loin
+
+- **Sauvegardes** : planifie un backup régulier du dossier `./data` (cron + rsync ou rclone)
+- **Monitoring** : utilise `docker stats minecraft` pour surveiller la consommation de RAM et CPU
+- **Multi-serveurs** : duplique le fichier compose avec un port et un dossier data différent pour chaque serveur
+- Documentation complète de l'image : [github.com/itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server)

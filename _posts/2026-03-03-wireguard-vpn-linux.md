@@ -1,8 +1,8 @@
 ---
 title: "Monter un VPN WireGuard sur Linux"
 date: 2026-03-03 16:00:00 +0100
-categories: [Tutoriels, Réseau]
-tags: [wireguard, vpn, linux, réseau, sécurité]
+categories: [Tutoriels, Reseau]
+tags: [wireguard, vpn, linux, reseau, securite]
 ---
 
 WireGuard est un VPN moderne, rapide, et simple à configurer. Il est intégré directement dans le noyau Linux depuis la version 5.6, ce qui le rend bien plus performant que des solutions comme OpenVPN.
@@ -27,9 +27,11 @@ WireGuard utilise un système de clés publique/privée (comme SSH).
 
 ```bash
 cd /etc/wireguard
+umask 077
 wg genkey | tee server_private.key | wg pubkey > server_public.key
-chmod 600 server_private.key
 ```
+
+> Les fichiers de clés sont automatiquement créés avec les bonnes permissions grâce à `umask 077`.
 
 Note les deux clés, tu en auras besoin :
 
@@ -129,4 +131,11 @@ Démarre le VPN sur le client :
 sudo wg-quick up wg0
 ```
 
-> Pour un smartphone, génère un QR code avec `qrencode -t ansiutf8 < client.conf` après avoir installé `qrencode`.
+> Pour un smartphone, génère un QR code avec `qrencode -t ansiutf8 < /etc/wireguard/wg0.conf` après avoir installé `qrencode` (`sudo apt install qrencode`).
+
+## Bonnes pratiques
+
+- **Un peer par appareil** : ne partage jamais la même clé entre plusieurs appareils
+- **DNS** : utilise un résolveur DNS fiable dans la config client (`1.1.1.1`, `9.9.9.9`, ou ton propre Pi-hole)
+- **Surveillance** : vérifie les connexions actives avec `sudo wg show`
+- **Rotation des clés** : change régulièrement les clés de tes peers pour limiter l'impact d'une compromission
