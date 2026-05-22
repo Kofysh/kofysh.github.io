@@ -3,6 +3,9 @@ title: "Docker + Traefik : HTTPS automatique pour tes services"
 date: 2026-03-03 19:00:00 +0100
 categories: [Tutoriels, Infrastructure]
 tags: [docker, traefik, https, reverse-proxy, letsencrypt]
+image:
+  path: /assets/img/posts/traefik-banner.png
+  alt: Traefik reverse proxy avec Docker
 ---
 
 Traefik est un reverse proxy moderne conçu pour Docker. Il détecte automatiquement tes conteneurs et leur génère un certificat HTTPS via Let's Encrypt — sans rien configurer manuellement.
@@ -12,6 +15,9 @@ Traefik est un reverse proxy moderne conçu pour Docker. Il détecte automatique
 - Un serveur avec Docker et Docker Compose installés
 - Un nom de domaine qui pointe vers ton serveur (ex: `mondomaine.fr`)
 - Les ports **80** et **443** ouverts dans ton pare-feu
+
+> Vérifie que rien d'autre n'écoute sur le port 80/443 avant de démarrer Traefik.
+{: .prompt-warning }
 
 ## 1. Créer le réseau Docker
 
@@ -26,9 +32,12 @@ docker network create traefik-network
 Crée un dossier de travail :
 
 ```bash
-mkdir ~/traefik && cd ~/traefik
+mkdir -p ~/docker/traefik && cd ~/docker/traefik
 touch acme.json && chmod 600 acme.json
 ```
+
+> Le `chmod 600` sur `acme.json` est **obligatoire** — Traefik refuse de démarrer si les permissions sont trop ouvertes.
+{: .prompt-danger }
 
 Crée le fichier `docker-compose.yml` :
 
@@ -50,8 +59,12 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.email=ton@email.fr"
       - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
-      # Redirection HTTP -> HTTPS automatique
+      # Redirection HTTP → HTTPS automatique
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Logs
+      - "--log.level=INFO"
+      - "--accesslog=true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./acme.json:/acme.json
@@ -62,21 +75,25 @@ services:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.mondomaine.fr`)"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=admin:HASH_A_GENERER"
 
 networks:
   traefik-network:
     external: true
 ```
 
-> 💡 Remplace `ton@email.fr` et `traefik.mondomaine.fr` par tes vraies valeurs.
+> Remplace `ton@email.fr`, `traefik.mondomaine.fr` et `HASH_A_GENERER` par tes vraies valeurs (voir section sécurisation).
+{: .prompt-tip }
 
 ```bash
 docker compose up -d
+docker logs -f traefik
 ```
 
 ## 3. Exposer un service avec Traefik
 
-Voici un exemple avec **Nginx** exposé en HTTPS automatiquement :
+Voici un exemple complet avec **Nginx** exposé en HTTPS :
 
 ```yaml
 services:
@@ -89,53 +106,91 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.monsite.rule=Host(`monsite.mondomaine.fr`)"
-      - "traefik.http.routers.monsite.tls.certresolver=letsencrypt"
       - "traefik.http.routers.monsite.entrypoints=websecure"
+      - "traefik.http.routers.monsite.tls.certresolver=letsencrypt"
+      # Optionnel : rediriger explicitement depuis HTTP
+      - "traefik.http.routers.monsite-http.rule=Host(`monsite.mondomaine.fr`)"
+      - "traefik.http.routers.monsite-http.entrypoints=web"
+      - "traefik.http.routers.monsite-http.middlewares=redirect-https"
+      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
 
 networks:
   traefik-network:
     external: true
 ```
 
-Démarre le service et Traefik s'occupe du reste :
-
 ```bash
 docker compose up -d
 ```
 
-Ton site est maintenant accessible en HTTPS sur `https://monsite.mondomaine.fr` avec un certificat valide généré automatiquement. ✅
+Ton service est accessible en HTTPS sur `https://monsite.mondomaine.fr` avec un certificat valide ✅
 
 ## 4. Sécuriser le dashboard
 
-Par défaut, le dashboard Traefik est accessible sans authentification. Ajoute un middleware `basicAuth` pour le protéger.
-
-Génère un mot de passe hashé :
+Le dashboard Traefik est accessible sans auth par défaut. Génère un hash bcrypt :
 
 ```bash
 sudo apt install -y apache2-utils
-echo $(htpasswd -nb admin MOT_DE_PASSE_FORT) | sed -e s/\\$/\\$\\$/g
+# Génère le hash pour l'utilisateur "admin"
+echo $(htpasswd -nb admin MON_MOT_DE_PASSE) | sed -e s/\\$/\\$\\$/g
 ```
 
-Puis ajoute ces labels au service `traefik` dans ton `docker-compose.yml` :
+Copie le résultat et remplace `HASH_A_GENERER` dans les labels du `docker-compose.yml` de Traefik.
+
+> Ne laisse **jamais** le dashboard exposé sans authentification en production.
+{: .prompt-danger }
+
+## 5. Ajouter des middlewares utiles
+
+Traefik supporte des middlewares réutilisables. Voici les plus courants à définir dans un fichier de configuration statique ou directement en labels :
+
+### Rate limiting
 
 ```yaml
 labels:
-  - "traefik.enable=true"
-  - "traefik.http.routers.dashboard.rule=Host(`traefik.mondomaine.fr`)"
-  - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-  - "traefik.http.routers.dashboard.service=api@internal"
-  - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
-  - "traefik.http.middlewares.dashboard-auth.basicauth.users=admin:HASH_GENERE"
+  - "traefik.http.middlewares.ratelimit.ratelimit.average=100"
+  - "traefik.http.middlewares.ratelimit.ratelimit.burst=50"
 ```
 
-> Ne laisse **jamais** le dashboard exposé sans authentification en production.
+### Headers de sécurité
 
-## Commandes utiles
+```yaml
+labels:
+  - "traefik.http.middlewares.secheaders.headers.stsSeconds=31536000"
+  - "traefik.http.middlewares.secheaders.headers.stsIncludeSubdomains=true"
+  - "traefik.http.middlewares.secheaders.headers.contentTypeNosniff=true"
+  - "traefik.http.middlewares.secheaders.headers.browserXssFilter=true"
+  - "traefik.http.middlewares.secheaders.headers.referrerPolicy=strict-origin-when-cross-origin"
+```
+
+## 6. Commandes de diagnostic
 
 ```bash
-# Voir les logs de Traefik
+# Voir les logs en temps réel
 docker logs -f traefik
 
-# Vérifier les certificats générés
-cat ~/traefik/acme.json | python3 -m json.tool
+# Lister les routes actives
+docker exec traefik traefik version
+
+# Inspecter les certificats générés
+cat ~/docker/traefik/acme.json | python3 -m json.tool | grep -A3 'domain'
+
+# Vérifier l'état des conteneurs
+docker compose ps
 ```
+
+## Résumé de l'architecture
+
+```
+Internet
+   │
+   ▼
+Traefik (80/443)
+   │
+   ├── traefik.mondomaine.fr  →  Dashboard (basicAuth)
+   ├── monsite.mondomaine.fr  →  Nginx
+   ├── nextcloud.mondomaine.fr → Nextcloud
+   └── ...                    →  Autres services
+```
+
+Avec cette configuration, chaque nouveau service que tu ajoutes à `traefik-network` avec les bons labels est automatiquement disponible en HTTPS. Plus besoin de gérer Certbot ou nginx manuellement.
