@@ -1,53 +1,41 @@
 ---
 ---
 
-@use 'jekyll-theme-chirpy';
-
 /* ==================================================
    Custom styles — yipyip.fr
-   Override du thème Chirpy sans modifier le gem
+   CSS pur injecté après le thème Chirpy
    ================================================== */
 
-/* ---------- Google Fonts ---------- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-/* ---------- Variables de couleur (dark mode) ---------- */
+/* ---------- Variables dark mode ---------- */
 [data-mode='dark'],
 html[data-mode='dark'] {
-  --sidebar-bg:         #0d1117;
-  --sidebar-border:     #21262d;
-  --body-bg:            #0d1117;
-  --card-bg:            #161b22;
-  --card-border:        #21262d;
-  --text-color:         #e6edf3;
-  --text-muted:         #8b949e;
-  --link-color:         #58a6ff;
-  --link-hover:         #79c0ff;
-  --accent:             #7ee787;
-  --accent-2:           #58a6ff;
-  --tag-bg:             #1f2937;
-  --tag-color:          #7ee787;
-  --code-bg:            #161b22;
-  --code-border:        #30363d;
-  --scrollbar-thumb:    #30363d;
-  --highlight-bg:       #1c2128;
+  --sidebar-bg:      #0d1117;
+  --body-bg:         #0d1117;
+  --card-bg:         #161b22;
+  --card-border:     #21262d;
+  --text-color:      #e6edf3;
+  --text-muted:      #8b949e;
+  --accent:          #7ee787;
+  --accent-2:        #58a6ff;
+  --tag-bg:          #1f2937;
+  --tag-color:       #7ee787;
+  --code-border:     #30363d;
+  --scrollbar-thumb: #30363d;
 }
 
-/* ---------- Variables (light mode) ---------- */
+/* ---------- Variables light mode ---------- */
 :root,
 html:not([data-mode='dark']) {
-  --sidebar-bg:         #f6f8fa;
-  --card-bg:            #ffffff;
-  --card-border:        #d0d7de;
-  --accent:             #1a7f37;
-  --accent-2:           #0969da;
-  --tag-bg:             #dafbe1;
-  --tag-color:          #1a7f37;
-  --code-border:        #d0d7de;
-  --scrollbar-thumb:    #c9d1d9;
+  --accent:          #1a7f37;
+  --accent-2:        #0969da;
+  --tag-bg:          #dafbe1;
+  --tag-color:       #1a7f37;
+  --card-border:     #d0d7de;
+  --code-border:     #d0d7de;
+  --scrollbar-thumb: #c9d1d9;
 }
 
-/* ---------- Typographie globale ---------- */
+/* ---------- Typographie ---------- */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 15.5px;
@@ -69,7 +57,6 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ---------- Sidebar ---------- */
 #sidebar {
-  background: var(--sidebar-bg);
   border-right: 1px solid var(--card-border);
 }
 
@@ -86,7 +73,6 @@ h1, h2, h3, h4, h5, h6 {
 #sidebar .site-subtitle {
   font-size: 0.78rem;
   opacity: 0.7;
-  letter-spacing: 0.01em;
 }
 
 #sidebar img.avatar {
@@ -102,7 +88,6 @@ h1, h2, h3, h4, h5, h6 {
 #sidebar .nav-link {
   border-radius: 6px;
   transition: background 0.15s ease, color 0.15s ease;
-  margin: 1px 0;
 }
 
 #sidebar .nav-link:hover,
@@ -117,14 +102,13 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 10px;
   padding: 1.2rem 1.4rem;
   margin-bottom: 1.2rem;
-  background: var(--card-bg);
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .post-preview:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 /* ---------- Tags ---------- */
@@ -141,17 +125,12 @@ h1, h2, h3, h4, h5, h6 {
   transition: opacity 0.2s;
 }
 
-.post-tag:hover {
-  opacity: 0.75;
-}
+.post-tag:hover { opacity: 0.75; }
 
 /* ---------- Code ---------- */
-code,
-pre,
-.highlight {
+code, pre, .highlight {
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
   font-size: 0.84rem;
-  font-variant-ligatures: contextual;
 }
 
 div.highlight,
@@ -186,10 +165,10 @@ figure.highlight {
   margin: 1rem 0;
 }
 
-.prompt-tip    { border-left-color: #3fb950 !important; background: rgba(63, 185, 80, 0.08);  }
-.prompt-info   { border-left-color: #58a6ff !important; background: rgba(88, 166, 255, 0.08); }
-.prompt-warning{ border-left-color: #d29922 !important; background: rgba(210, 153, 34, 0.08); }
-.prompt-danger { border-left-color: #f85149 !important; background: rgba(248, 81, 73, 0.08);  }
+.prompt-tip     { border-left-color: #3fb950 !important; background: rgba(63,  185, 80,  0.08); }
+.prompt-info    { border-left-color: #58a6ff !important; background: rgba(88,  166, 255, 0.08); }
+.prompt-warning { border-left-color: #d29922 !important; background: rgba(210, 153, 34,  0.08); }
+.prompt-danger  { border-left-color: #f85149 !important; background: rgba(248, 81,  73,  0.08); }
 
 /* ---------- TOC ---------- */
 #toc-wrapper {
@@ -197,14 +176,8 @@ figure.highlight {
   padding-left: 0.8rem;
 }
 
-#toc li a.nav-link:hover,
-#toc li a.nav-link.active {
-  color: var(--accent);
-}
-
-#toc li a.nav-link.active {
-  font-weight: 600;
-}
+#toc li a.nav-link:hover { color: var(--accent); }
+#toc li a.nav-link.active { color: var(--accent); font-weight: 600; }
 
 /* ---------- Liens articles ---------- */
 .post-content a {
@@ -214,9 +187,7 @@ figure.highlight {
   transition: border-color 0.15s ease;
 }
 
-.post-content a:hover {
-  border-bottom-color: var(--accent-2);
-}
+.post-content a:hover { border-bottom-color: var(--accent-2); }
 
 /* ---------- Tableaux ---------- */
 .post-content table {
@@ -242,18 +213,12 @@ figure.highlight {
 }
 
 .post-content table tr:last-child td { border-bottom: none; }
-
-.post-content table tr:hover td {
-  background: rgba(88, 166, 255, 0.04);
-}
+.post-content table tr:hover td { background: rgba(88, 166, 255, 0.04); }
 
 /* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 3px;
-}
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-2); }
 
 /* ---------- Back to top ---------- */
