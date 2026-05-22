@@ -15,25 +15,29 @@ J'ai chez moi un serveur sur lequel tourne [Proxmox](https://www.proxmox.com/), 
 
 Seulement, avec un seul abonnement internet de particulier et une seule IP résidentielle, je suis vite limité par le nombre de ports disponibles. Certains opérateurs en France retirent l'ouverture de ports, et les box 4G/5G ne la proposent pas à cause du [CG-NAT](https://fr.wikipedia.org/wiki/Carrier-grade_NAT).
 
-Ces limitations m'ont amené à mettre en place une solution pour avoir plusieurs adresses IP chez soi, dédiées, protégées par un Anti-DDoS et peu chères.
+Ces limitations m'ont amené à mettre en place une solution pour avoir plusieurs adresses IP chez soi, dédiées, protégées par un Anti-DDoS et peu chères. N'ayant trouvé aucune solution existante, j'ai bidouillé et mis en place la mienne.
+
+## Principe de fonctionnement
 
 ![Schéma de principe du tunnel WireGuard](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-schema-hms.avif)
-_Principe de fonctionnement : le trafic transite par le VPS HMS avant d'arriver chez soi._
+_Le trafic entrant passe par le VPS HMS (avec Anti-DDoS), traverse le tunnel WireGuard, et arrive directement sur la machine chez soi._
 
-## Choix de l'hébergeur
+## Le choix de l'hébergeur
 
-J'ai choisi [HostMyServers](https://www.hostmyservers.fr/), un hébergeur français 🇫🇷 avec plusieurs années d'existence. Le premier [VPS SSD](https://www.hostmyservers.fr/vps-ssd) suffit amplement pour un trafic raisonnable (~250 Mbps) et inclut une protection Anti-DDoS basique.
-
-Ce qui nous concerne le plus : les adresses IP supplémentaires coûtent **2€ à vie** chez HMS.
+J'ai choisi [HostMyServers](https://www.hostmyservers.fr/), un hébergeur français 🇫🇷 avec plusieurs années d'existence, car ils proposent des tarifs très intéressants au niveau du réseau et la qualité de service est correcte. Le premier [VPS SSD](https://www.hostmyservers.fr/vps-ssd) suffit amplement pour un trafic raisonnable (~250 Mbps) dans le tunnel et inclut une protection Anti-DDoS basique contre les attaques simples.
 
 ![Tarifs VPS HMS](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-prixhms.avif)
 _Les tarifs des VPS SSD chez HostMyServers._
 
-D'autres hébergeurs comme [RoyaleHosting](https://royalehosting.net/store/vps) ou [OVH](https://www.ovhcloud.com/fr/vps/) proposent un réseau de meilleure qualité mais à un prix bien plus important. Ce tutoriel se concentre sur HMS.
+Ce qui nous concerne le plus, c'est le tarif des adresses IP supplémentaires. Chez HMS, elles coûtent **2€ à vie**.
+
+D'autres hébergeurs comme [RoyaleHosting](https://royalehosting.net/store/vps) ou [OVH](https://www.ovhcloud.com/fr/vps/) peuvent proposer un réseau de meilleure qualité mais à un prix bien plus important. Ce tutoriel se concentre sur HMS.
 
 ## Achat d'adresses IP supplémentaires
 
 Depuis la rubrique **"Configuration"** sur votre VPS, cliquez sur **"Commander IP Supplémentaires"**.
+
+Voici les tarifs proposés par HostMyServers :
 
 ![Tarifs des IPs supplémentaires HMS](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-prixiphms.avif)
 _Tarifs des adresses IPv4 supplémentaires chez HMS._
@@ -41,27 +45,29 @@ _Tarifs des adresses IPv4 supplémentaires chez HMS._
 > Je recommande de prendre des adresses IPv4 Supplémentaires **à l'unité** plutôt qu'en bloc.
 {: .prompt-tip }
 
-> ⚠️ Commandez raisonnablement des adresses IPv4, il n'y en a plus beaucoup et il est inutile d'en réserver si elles restent inutilisées.
-{: .prompt-warning }
-
 Une fois l'adresse IP achetée, votre panel devrait ressembler à ceci :
 
 ![Panel HMS avec IP principale](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-ip1.avif)
-_Vue du panel avec l'IP principale (avec reverse DNS)._
+_Vue générale du VPS — l'IP principale est celle associée à un reverse DNS._
 
 ![Panel HMS avec IP supplémentaire](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-ip2.avif)
-_Vue du panel avec l'IP supplémentaire (sans reverse DNS)._
+_Vue configuration — IP principale (avec reverse DNS) et IP supplémentaire (sans reverse DNS) clairement identifiées._
 
 Notez bien :
 - **IP principale** = celle qui possède un reverse DNS associé
 - **IP supplémentaire** = celle sans reverse DNS
+
+Notez sur un bloc-note quelle IP est laquelle afin de ne pas vous emmêler les pinceaux dans la suite du tuto.
+
+> ⚠️ Commandez raisonnablement des adresses IPv4, il n'y en a plus beaucoup et il est inutile d'en réserver si elles restent inutilisées.
+{: .prompt-warning }
 
 ## Préparation du VPS
 
 > Cette étape s'applique uniquement aux clients HMS / RoyaleHosting avec Debian 12. Si votre VPS utilise déjà systemd-networking, vous pouvez l'ignorer.
 {: .prompt-info }
 
-Une fois votre VPS livré, rendez-vous dans votre espace client pour choisir sa distribution. Installez **Debian 12** :
+Une fois votre VPS livré, rendez-vous dans votre espace client pour choisir sa distribution. Nous installons **Debian 12** :
 
 ![Panel HMS - Installation du VPS](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-panelhmsinstallvps.avif)
 _Sélection de Debian 12 depuis l'espace client HMS._
