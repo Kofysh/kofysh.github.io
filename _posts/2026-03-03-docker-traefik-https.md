@@ -3,9 +3,6 @@ title: "Docker + Traefik : HTTPS automatique pour tes services"
 date: 2026-03-03 19:00:00 +0100
 categories: [Tutoriels, Infrastructure]
 tags: [docker, traefik, https, reverse-proxy, letsencrypt]
-image:
-  path: /assets/img/posts/traefik-banner.png
-  alt: Traefik reverse proxy avec Docker
 ---
 
 Traefik est un reverse proxy moderne conçu pour Docker. Il détecte automatiquement tes conteneurs et leur génère un certificat HTTPS via Let's Encrypt — sans rien configurer manuellement.
@@ -142,7 +139,7 @@ Copie le résultat et remplace `HASH_A_GENERER` dans les labels du `docker-compo
 
 ## 5. Ajouter des middlewares utiles
 
-Traefik supporte des middlewares réutilisables. Voici les plus courants à définir dans un fichier de configuration statique ou directement en labels :
+Traefik supporte des middlewares réutilisables. Voici les plus courants à définir directement en labels :
 
 ### Rate limiting
 
