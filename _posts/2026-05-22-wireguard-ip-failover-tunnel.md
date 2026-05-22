@@ -17,11 +17,17 @@ Seulement, avec un seul abonnement internet de particulier et une seule IP rési
 
 Ces limitations m'ont amené à mettre en place une solution pour avoir plusieurs adresses IP chez soi, dédiées, protégées par un Anti-DDoS et peu chères.
 
+![Schéma de principe du tunnel WireGuard](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-schema-hms.avif)
+_Principe de fonctionnement : le trafic transite par le VPS HMS avant d'arriver chez soi._
+
 ## Choix de l'hébergeur
 
 J'ai choisi [HostMyServers](https://www.hostmyservers.fr/), un hébergeur français 🇫🇷 avec plusieurs années d'existence. Le premier [VPS SSD](https://www.hostmyservers.fr/vps-ssd) suffit amplement pour un trafic raisonnable (~250 Mbps) et inclut une protection Anti-DDoS basique.
 
 Ce qui nous concerne le plus : les adresses IP supplémentaires coûtent **2€ à vie** chez HMS.
+
+![Tarifs VPS HMS](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-prixhms.avif)
+_Les tarifs des VPS SSD chez HostMyServers._
 
 D'autres hébergeurs comme [RoyaleHosting](https://royalehosting.net/store/vps) ou [OVH](https://www.ovhcloud.com/fr/vps/) proposent un réseau de meilleure qualité mais à un prix bien plus important. Ce tutoriel se concentre sur HMS.
 
@@ -29,11 +35,22 @@ D'autres hébergeurs comme [RoyaleHosting](https://royalehosting.net/store/vps) 
 
 Depuis la rubrique **"Configuration"** sur votre VPS, cliquez sur **"Commander IP Supplémentaires"**.
 
+![Tarifs des IPs supplémentaires HMS](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-prixiphms.avif)
+_Tarifs des adresses IPv4 supplémentaires chez HMS._
+
 > Je recommande de prendre des adresses IPv4 Supplémentaires **à l'unité** plutôt qu'en bloc.
 {: .prompt-tip }
 
 > ⚠️ Commandez raisonnablement des adresses IPv4, il n'y en a plus beaucoup et il est inutile d'en réserver si elles restent inutilisées.
 {: .prompt-warning }
+
+Une fois l'adresse IP achetée, votre panel devrait ressembler à ceci :
+
+![Panel HMS avec IP principale](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-ip1.avif)
+_Vue du panel avec l'IP principale (avec reverse DNS)._
+
+![Panel HMS avec IP supplémentaire](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-ip2.avif)
+_Vue du panel avec l'IP supplémentaire (sans reverse DNS)._
 
 Notez bien :
 - **IP principale** = celle qui possède un reverse DNS associé
@@ -44,9 +61,17 @@ Notez bien :
 > Cette étape s'applique uniquement aux clients HMS / RoyaleHosting avec Debian 12. Si votre VPS utilise déjà systemd-networking, vous pouvez l'ignorer.
 {: .prompt-info }
 
-Une fois votre VPS livré, installez **Debian 12** depuis votre espace client, puis connectez-vous en SSH avec [PuTTY](https://www.putty.org/) ou [Termius](https://termius.com/).
+Une fois votre VPS livré, rendez-vous dans votre espace client pour choisir sa distribution. Installez **Debian 12** :
 
-Exécutez le script de préparation (désinstalle netplan, installe systemd-networking) :
+![Panel HMS - Installation du VPS](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-panelhmsinstallvps.avif)
+_Sélection de Debian 12 depuis l'espace client HMS._
+
+Une fois le VPS installé, vous recevrez les identifiants de connexion par email :
+
+![Email de livraison HMS](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-hmsmailinstalled.avif)
+_Email contenant les identifiants SSH reçu après installation._
+
+Connectez-vous en SSH avec [PuTTY](https://www.putty.org/) ou [Termius](https://termius.com/), puis exécutez le script de préparation (désinstalle netplan, installe systemd-networking) :
 
 ```bash
 curl -sSL https://forevercdn.creeper.fr/sh/preparevps.sh | bash
