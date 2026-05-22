@@ -1,0 +1,307 @@
+---
+---
+
+@import 'jekyll-theme-chirpy';
+
+/* ==================================================
+   Custom styles — yipyip.fr
+   Override du thème Chirpy sans modifier le gem
+   ================================================== */
+
+/* ---------- Google Fonts ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ---------- Variables de couleur (dark mode) ---------- */
+[data-mode='dark'],
+html[data-mode='dark'] {
+  --sidebar-bg:         #0d1117;
+  --sidebar-border:     #21262d;
+  --body-bg:            #0d1117;
+  --card-bg:            #161b22;
+  --card-border:        #21262d;
+  --text-color:         #e6edf3;
+  --text-muted:         #8b949e;
+  --link-color:         #58a6ff;
+  --link-hover:         #79c0ff;
+  --accent:             #7ee787;   /* vert terminal */
+  --accent-2:           #58a6ff;   /* bleu liens */
+  --tag-bg:             #1f2937;
+  --tag-color:          #7ee787;
+  --code-bg:            #161b22;
+  --code-border:        #30363d;
+  --scrollbar-thumb:    #30363d;
+  --highlight-bg:       #1c2128;
+}
+
+/* ---------- Variables (light mode) ---------- */
+:root,
+html:not([data-mode='dark']) {
+  --sidebar-bg:         #f6f8fa;
+  --card-bg:            #ffffff;
+  --card-border:        #d0d7de;
+  --accent:             #1a7f37;
+  --accent-2:           #0969da;
+  --tag-bg:             #dafbe1;
+  --tag-color:          #1a7f37;
+  --code-border:        #d0d7de;
+  --scrollbar-thumb:    #c9d1d9;
+}
+
+/* ---------- Typographie globale ---------- */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15.5px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Ligne décorative sous les titres h2 des articles */
+.post-content h2 {
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.3rem;
+  margin-top: 2rem;
+}
+
+/* ---------- Sidebar ---------- */
+#sidebar {
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--card-border);
+}
+
+#sidebar .site-title a {
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+#sidebar .site-subtitle {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  letter-spacing: 0.01em;
+}
+
+/* Avatar avec bordure accent */
+#sidebar img.avatar {
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 12px rgba(126, 231, 135, 0.25);
+  transition: box-shadow 0.3s ease;
+}
+
+#sidebar img.avatar:hover {
+  box-shadow: 0 0 20px rgba(126, 231, 135, 0.45);
+}
+
+/* Nav links sidebar */
+#sidebar .nav-link {
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+  margin: 1px 0;
+}
+
+#sidebar .nav-link:hover,
+#sidebar .nav-link.active {
+  background: rgba(88, 166, 255, 0.1);
+  color: var(--accent-2);
+}
+
+/* ---------- Post cards (liste) ---------- */
+.post-preview {
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1.2rem;
+  background: var(--card-bg);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-preview:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+/* ---------- Tags ---------- */
+.post-tag,
+.btn.btn-outline-primary,
+.tag {
+  background: var(--tag-bg) !important;
+  color: var(--tag-color) !important;
+  border: 1px solid var(--tag-color) !important;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 2px 10px;
+  transition: opacity 0.2s;
+}
+
+.post-tag:hover {
+  opacity: 0.75;
+}
+
+/* ---------- Code blocks ---------- */
+code,
+pre,
+.highlight {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+  font-size: 0.84rem;
+  font-variant-ligatures: contextual;
+}
+
+div.highlight,
+figure.highlight {
+  border: 1px solid var(--code-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+
+/* Ligne de numérotation plus discrète */
+.highlight .gutter .lineno {
+  opacity: 0.35;
+  user-select: none;
+  padding-right: 1rem;
+}
+
+/* Inline code */
+:not(pre) > code {
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.85em;
+  border: 1px solid var(--code-border);
+}
+
+/* ---------- Prompt blocks (tip/warning/danger/info) ---------- */
+.prompt-tip,
+.prompt-info,
+.prompt-warning,
+.prompt-danger {
+  border-radius: 6px;
+  border-left-width: 4px !important;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+}
+
+.prompt-tip    { border-left-color: #3fb950 !important; background: rgba(63, 185, 80, 0.08);  }
+.prompt-info   { border-left-color: #58a6ff !important; background: rgba(88, 166, 255, 0.08); }
+.prompt-warning{ border-left-color: #d29922 !important; background: rgba(210, 153, 34, 0.08); }
+.prompt-danger { border-left-color: #f85149 !important; background: rgba(248, 81, 73, 0.08);  }
+
+/* ---------- TOC (table des matières) ---------- */
+#toc-wrapper {
+  border-left: 2px solid var(--card-border);
+  padding-left: 0.8rem;
+}
+
+#toc li a.nav-link:hover {
+  color: var(--accent);
+}
+
+/* TOC lien actif */
+#toc li a.nav-link.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---------- Liens dans les articles ---------- */
+.post-content a {
+  color: var(--accent-2);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.post-content a:hover {
+  border-bottom-color: var(--accent-2);
+}
+
+/* ---------- Tableaux ---------- */
+.post-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.2rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+}
+
+.post-content table th {
+  background: rgba(88, 166, 255, 0.1);
+  font-weight: 600;
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.post-content table td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.post-content table tr:last-child td {
+  border-bottom: none;
+}
+
+.post-content table tr:hover td {
+  background: rgba(88, 166, 255, 0.04);
+}
+
+/* ---------- Scrollbar personnalisée (Webkit) ---------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-2);
+}
+
+/* ---------- Bouton "Back to top" ---------- */
+#back-to-top {
+  background: var(--accent) !important;
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(126, 231, 135, 0.3);
+}
+
+/* ---------- Footer ---------- */
+#footer {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  border-top: 1px solid var(--card-border);
+  padding-top: 1rem;
+}
+
+/* ---------- Catégories & Tags pages ---------- */
+.card-header {
+  border-radius: 8px 8px 0 0 !important;
+  font-weight: 600;
+}
+
+/* ---------- Responsive mobile ---------- */
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+
+  .post-preview {
+    padding: 1rem;
+  }
+}
