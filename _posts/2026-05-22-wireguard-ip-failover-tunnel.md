@@ -2,8 +2,8 @@
 title: "Avoir des adresses IPv4/IPv6 chez soi avec un tunnel WireGuard"
 date: 2026-05-22 20:00:00 +0200
 categories: [Tutoriels, Réseau]
-tags: [wireguard, vpn, réseau, vps, ip-failover, iptables, linux]
-description: "Obtenir des adresses IP dédiées chez soi via un tunnel WireGuard vers un VPS, protégées par Anti-DDoS et peu chères."
+tags: [wireguard, vpn, réseau, vps, ip-failover, nftables, iptables, linux, debian13]
+description: "Obtenir des adresses IP dédiées chez soi via un tunnel WireGuard vers un VPS, protégées par Anti-DDoS et peu chères. Compatible Debian 11/12/13."
 ---
 
 > **Crédit :** Ce tutoriel est une adaptation de la documentation originale de [Tristan BRINGUIER (creeper.fr)](https://creeper.fr/wireguard), publiée sous licence [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Merci à lui pour ce travail !
@@ -65,7 +65,7 @@ Notez sur un bloc note quelle IP est laquelle afin de ne pas vous emmêler les p
 > Cette partie de la documentation s'applique uniquement aux clients HMS / RoyaleHosting. Si vous avez un VPS avec Debian 12 et systemd-networking, vous pouvez ignorer cette étape.
 {: .prompt-info }
 
-Une fois votre VPS livré, rendez-vous dans votre espace client pour choisir sa distribution. Nous installons Debian 12.
+Une fois votre VPS livré, rendez-vous dans votre espace client pour choisir sa distribution. Nous installons **Debian 12** (recommandé) ou **Debian 13** selon votre cas d'usage.
 
 ![Panel HMS - Installation du VPS avec Debian 12](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-panelhmsinstallvps.avif)
 
@@ -83,16 +83,44 @@ curl -sSL https://forevercdn.creeper.fr/sh/preparevps.sh | bash
 
 Le VPS redémarrera automatiquement une fois la préparation effectuée.
 
+## Prérequis spécifiques à Debian 13
+
+> Si vous êtes sur **Debian 11 ou 12**, ignorez cette section et passez directement à [Installation de WireGuard](#installation-de-wireguard).
+{: .prompt-info }
+
+Debian 13 "Trixie" abandonne `iptables` au profit de **nftables** comme backend de pare-feu par défaut. Les règles `PostUp`/`PostDown` à base d'`iptables` échouent silencieusement, cassant le routage du tunnel. Ce tutoriel intègre les deux variantes.
+
+### Si vous utilisez un LXC sur Proxmox avec Debian 13
+
+`wg-quick` reste bloqué indéfiniment au démarrage si le **nesting** est activé. Avant tout, désactivez-le depuis le shell Proxmox (pas dans le CT) :
+
+```bash
+pct set <CTID> --features nesting=0
+pct reboot <CTID>
+```
+
 ## Installation de Wireguard
 
 Une fois votre VPS préparé, nous pouvons nous y connecter en SSH grâce à un client SSH comme [PuTTY](https://www.putty.org/) ou [Termius](https://termius.com/).
 
-Commençons par mettre à jour et installer les paquets principaux sur le VPS :
+Commençons par mettre à jour et installer les paquets principaux sur le VPS.
+
+**Debian 11 / 12 :**
 
 ```bash
 apt update
 apt full-upgrade -y
-apt install wireguard-tools resolvconf iptables arping sudo bash curl arping wget -y
+apt install wireguard-tools resolvconf iptables arping sudo bash curl wget -y
+apt autoremove -y
+reboot
+```
+
+**Debian 13 :**
+
+```bash
+apt update
+apt full-upgrade -y
+apt install wireguard-tools resolvconf nftables arping sudo bash curl wget -y
 apt autoremove -y
 reboot
 ```
@@ -153,7 +181,7 @@ Préparons notre serveur wireguard. Vous n'avez qu'à faire cette étape une seu
 nano /etc/wireguard/wg0.conf
 ```
 
-Voici à quoi ressemble notre fichier `wg0.conf` initial :
+Voici à quoi ressemble notre fichier `wg0.conf` initial généré par le script :
 
 ```ini
 [Interface]
@@ -180,17 +208,26 @@ PresharedKey = t+rgwqN3j8LccHtgi7GULlwBrf8ghY8HAbZN6cagP8s=
 AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128
 ```
 
-Nous devons simplement remplacer les lignes `PostUp` et `PostDown` par celles ci-dessous :
+Nous devons remplacer les lignes `PostUp` et `PostDown` selon votre version de Debian.
+
+### Configuration PostUp/PostDown pour Debian 11 / 12
 
 ```ini
 PostUp = iptables -I FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -I FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -I INPUT -p udp -s 10.66.66.0/24 -j ACCEPT; ip6tables -I FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -D FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -D INPUT -p udp -s 10.66.66.0/24 -j ACCEPT; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
 ```
 
-> N'oubliez pas de remplacer `eth0` par le vrai nom de votre interface (cela peut changer en fonction de l'OS / provider) !
+### Configuration PostUp/PostDown pour Debian 13
+
+```ini
+PostUp = nft add table ip wg_nat; nft add chain ip wg_nat postrouting { type nat hook postrouting priority 100 \; }; nft add rule ip wg_nat postrouting oifname "eth0" ip saddr 10.66.66.0/24 masquerade; nft add table ip wg_filter; nft add chain ip wg_filter forward { type filter hook forward priority 0 \; }; nft add rule ip wg_filter forward iifname "eth0" oifname "wg0" ip saddr 10.66.66.0/24 accept; nft add rule ip wg_filter forward iifname "wg0" ip daddr 10.66.66.0/24 accept
+PostDown = nft delete table ip wg_nat; nft delete table ip wg_filter
+```
+
+> N'oubliez pas de remplacer `eth0` par le vrai nom de votre interface (`ip a` pour la trouver) !
 {: .prompt-warning }
 
-Voici à quoi ressemble notre fichier de configuration après modification :
+Voici à quoi ressemble notre fichier de configuration après modification (exemple avec Debian 12) :
 
 ```ini
 [Interface]
@@ -258,13 +295,22 @@ Une fois le fichier sauvegardé, nous pouvons modifier la configuration côté c
 nano wg0-client-MaVM.conf
 ```
 
-Il faut remplacer l'adresse IP `10.66.66.2` par l'adresse ip supplémentaire et également rajouter la ligne ci-dessous en dessous de `DNS` :
+Il faut remplacer l'adresse IP `10.66.66.2` par l'adresse ip supplémentaire et également rajouter la ligne `PostUp` ci-dessous en dessous de `DNS`.
+
+**Debian 11 / 12 :**
 
 ```ini
 PostUp = iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o wg0 -j TCPMSS --clamp-mss-to-pmtu
 ```
 
-Voici à quoi ressemble le fichier modifié :
+**Debian 13 :**
+
+```ini
+PostUp = nft add table ip wg_mss; nft add chain ip wg_mss postrouting { type filter hook postrouting priority mangle \; }; nft add rule ip wg_mss postrouting oifname "wg0" tcp flags syn tcp option maxseg size set rt mtu
+PostDown = nft delete table ip wg_mss
+```
+
+Voici à quoi ressemble le fichier client modifié (exemple avec Debian 12) :
 
 ```ini
 [Interface]
@@ -301,6 +347,8 @@ Notre profil est maintenant prêt à être déployé sur n'importe quelle platef
 
 Voici les commandes pour déployer le profil sur un linux en base Debian :
 
+**Debian 11 / 12 :**
+
 ```bash
 # Installer wireguard, Resolvconf et IPTables
 apt install wireguard-tools resolvconf iptables
@@ -316,6 +364,24 @@ systemctl enable wg-quick@wg0 --now
 # Vous pouvez vérifier en faisant un
 ip a
 # ou un
+curl ifconfig.me
+```
+
+**Debian 13 :**
+
+```bash
+# Installer wireguard, Resolvconf et NFTables
+apt install wireguard-tools resolvconf nftables
+
+# Installer le profil Wireguard :
+nano /etc/wireguard/wg0.conf
+# (puis coller le profil wireguard (wg0-client-) modifié à l'intérieur)
+
+# Activer et lancer notre profil wireguard au démarrage :
+systemctl enable wg-quick@wg0 --now
+
+# Et voilà ! Votre IP est maintenant montée sur cet appareil !
+ip a
 curl ifconfig.me
 ```
 
@@ -412,13 +478,37 @@ bash /usr/local/bin/arping-loop.sh
 
 Tout devrait être opérationnel si aucune erreur ne survient !
 
+### Diagnostics spécifiques Debian 13
+
+Vérifier les logs de wg-quick :
+
+```bash
+sudo journalctl -u wg-quick@wg0 -xe
+```
+
+Vérifier que les tables nftables ont bien été créées au démarrage de WireGuard :
+
+```bash
+nft list ruleset
+```
+
+Si Network Manager intercepte l'interface `wg0` avant `wg-quick`, créez ce fichier :
+
+```bash
+cat > /etc/NetworkManager/conf.d/wireguard-unmanaged.conf << 'EOF'
+[keyfile]
+unmanaged-devices=interface-name:wg*
+EOF
+systemctl restart NetworkManager
+```
+
 ## Conclusion & Remerciements
 
 Et voilà, vous avez maintenant des IP Failovers disponibles chez vous, protégées par Anti-DDoS, sur n'importe quel appareil !
 
 Cette astuce m'a permis de franchir un grand pas dans l'auto-hébergement, que ce soit pour des services pour moi ou pour les autres, car elle m'offre la puissance d'avoir des VPS avec des IP dédiées à prix réduit et avec un service de qualité similaire.
 
-Ce tutoriel existe initialement depuis juillet 2020, mais a été remasterisé récemment en septembre 2024 avec beaucoup d'améliorations et de mises à jour.
+Ce tutoriel existe initialement depuis juillet 2020, mais a été remasterisé récemment en septembre 2024 avec beaucoup d'améliorations et de mises à jour, puis adapté pour Debian 13 en mai 2026.
 
 Je tiens à remercier :
 - [@Aven678](https://github.com/Aven678) : Pour avoir simplifié énormément la gestion des IPs et la création de profils.
