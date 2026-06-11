@@ -2,8 +2,8 @@
 title: "Avoir des adresses IPv4/IPv6 chez soi avec un tunnel WireGuard"
 date: 2026-05-22 20:00:00 +0200
 categories: [Tutoriels, Réseau]
-tags: [wireguard, vpn, réseau, vps, ip-failover, nftables, iptables, linux, debian13]
-description: "Obtenir des adresses IP dédiées chez soi via un tunnel WireGuard vers un VPS, protégées par Anti-DDoS et peu chères. Compatible Debian 11/12/13."
+tags: [wireguard, vpn, réseau, vps, ip-failover, nftables, linux, debian13]
+description: "Obtenir des adresses IP dédiées chez soi via un tunnel WireGuard vers un VPS, protégées par Anti-DDoS et peu chères. Compatible Debian 13 (Trixie)."
 ---
 
 > **Crédit :** Ce tutoriel est une adaptation de la documentation originale de [Tristan BRINGUIER (creeper.fr)](https://creeper.fr/wireguard), publiée sous licence [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Merci à lui pour ce travail !
@@ -18,6 +18,9 @@ Seulement, ne possédant qu'un seul abonnement internet de particulier, et par c
 Encore heureux, je peux ouvrir mes ports, mais certains opérateurs en France retirent cette option au fil du temps, ou bien les box 4G/5G ne proposent pas cette option à cause du [CG-NAT](https://fr.wikipedia.org/wiki/Carrier-grade_NAT).
 
 Ces limitations m'ont amené à mettre en place une solution pour avoir plusieurs adresses IP chez soi, dédiées, protégées par un Anti-DDoS et peu chères. N'ayant trouvé aucune solution existante, j'ai bidouillé et mis en place la mienne.
+
+> **Note :** Ce tutoriel est exclusivement conçu pour **Debian 13 "Trixie"**. Debian 13 abandonne `iptables` au profit de **nftables** comme backend de pare-feu par défaut.
+{: .prompt-warning }
 
 ## Principe de fonctionnement
 
@@ -62,12 +65,12 @@ Notez sur un bloc note quelle IP est laquelle afin de ne pas vous emmêler les p
 
 ## Préparation du VPS
 
-> Cette partie de la documentation s'applique uniquement aux clients HMS / RoyaleHosting. Si vous avez un VPS avec Debian 12 et systemd-networking, vous pouvez ignorer cette étape.
+> Cette partie de la documentation s'applique uniquement aux clients HMS / RoyaleHosting. Si vous avez déjà un VPS avec Debian 13 et systemd-networking, vous pouvez ignorer cette étape.
 {: .prompt-info }
 
-Une fois votre VPS livré, rendez-vous dans votre espace client pour choisir sa distribution. Nous installons **Debian 12** (recommandé) ou **Debian 13** selon votre cas d'usage.
+Une fois votre VPS livré, rendez-vous dans votre espace client pour choisir sa distribution. Nous installons **Debian 13 (Trixie)**.
 
-![Panel HMS - Installation du VPS avec Debian 12](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-panelhmsinstallvps.avif)
+![Panel HMS - Installation du VPS avec Debian 13](https://forevercdn.creeper.fr/img/docs/wireguarddoc/doc-panelhmsinstallvps.avif)
 
 Une fois le VPS installé, vous recevrez les identifiants pour s'y connecter sur votre adresse email client.
 
@@ -85,10 +88,7 @@ Le VPS redémarrera automatiquement une fois la préparation effectuée.
 
 ## Prérequis spécifiques à Debian 13
 
-> Si vous êtes sur **Debian 11 ou 12**, ignorez cette section et passez directement à [Installation de WireGuard](#installation-de-wireguard).
-{: .prompt-info }
-
-Debian 13 "Trixie" abandonne `iptables` au profit de **nftables** comme backend de pare-feu par défaut. Les règles `PostUp`/`PostDown` à base d'`iptables` échouent silencieusement, cassant le routage du tunnel. Ce tutoriel intègre les deux variantes.
+Debian 13 "Trixie" abandonne `iptables` au profit de **nftables** comme backend de pare-feu par défaut. Les règles `PostUp`/`PostDown` à base d'`iptables` échouent silencieusement, cassant le routage du tunnel. Ce tutoriel utilise exclusivement nftables.
 
 ### Si vous utilisez un LXC sur Proxmox avec Debian 13
 
@@ -103,26 +103,24 @@ pct reboot <CTID>
 
 Une fois votre VPS préparé, nous pouvons nous y connecter en SSH grâce à un client SSH comme [PuTTY](https://www.putty.org/) ou [Termius](https://termius.com/).
 
-Commençons par mettre à jour et installer les paquets principaux sur le VPS.
-
-**Debian 11 / 12 :**
+Commençons par mettre à jour et installer les paquets principaux sur le VPS :
 
 ```bash
 apt update
 apt full-upgrade -y
-apt install wireguard-tools resolvconf iptables arping sudo bash curl wget -y
+apt install wireguard-tools nftables arping sudo bash curl wget -y
 apt autoremove -y
 reboot
 ```
 
-**Debian 13 :**
+> **Note :** `resolvconf` est déprécié sur Debian 13. La gestion DNS est assurée nativement par `systemd-resolved`, déjà actif par défaut.
+{: .prompt-info }
+
+Activons et configurons `systemd-resolved` :
 
 ```bash
-apt update
-apt full-upgrade -y
-apt install wireguard-tools resolvconf nftables arping sudo bash curl wget -y
-apt autoremove -y
-reboot
+systemctl enable --now systemd-resolved
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 ```
 
 Une fois notre VPS redémarré, nous pouvons déployer le serveur Wireguard :
@@ -208,16 +206,7 @@ PresharedKey = t+rgwqN3j8LccHtgi7GULlwBrf8ghY8HAbZN6cagP8s=
 AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128
 ```
 
-Nous devons remplacer les lignes `PostUp` et `PostDown` selon votre version de Debian.
-
-### Configuration PostUp/PostDown pour Debian 11 / 12
-
-```ini
-PostUp = iptables -I FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -I FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -I INPUT -p udp -s 10.66.66.0/24 -j ACCEPT; ip6tables -I FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -D FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -D INPUT -p udp -s 10.66.66.0/24 -j ACCEPT; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
-```
-
-### Configuration PostUp/PostDown pour Debian 13
+Nous devons **remplacer entièrement les lignes `PostUp` et `PostDown`** par les règles nftables adaptées à Debian 13 :
 
 ```ini
 PostUp = nft add table ip wg_nat; nft add chain ip wg_nat postrouting { type nat hook postrouting priority 100 \; }; nft add rule ip wg_nat postrouting oifname "eth0" ip saddr 10.66.66.0/24 masquerade; nft add table ip wg_filter; nft add chain ip wg_filter forward { type filter hook forward priority 0 \; }; nft add rule ip wg_filter forward iifname "eth0" oifname "wg0" ip saddr 10.66.66.0/24 accept; nft add rule ip wg_filter forward iifname "wg0" ip daddr 10.66.66.0/24 accept
@@ -227,15 +216,15 @@ PostDown = nft delete table ip wg_nat; nft delete table ip wg_filter
 > N'oubliez pas de remplacer `eth0` par le vrai nom de votre interface (`ip a` pour la trouver) !
 {: .prompt-warning }
 
-Voici à quoi ressemble notre fichier de configuration après modification (exemple avec Debian 12) :
+Voici à quoi ressemble notre fichier de configuration après modification :
 
 ```ini
 [Interface]
 Address = 10.66.66.1/24,fd42:42:42::1/64
 ListenPort = 62052
 PrivateKey = qA0nlMcMHLUGLgbsQ7zsVlvg2NartzikMUMJRNwdeVs=
-PostUp = iptables -I FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -I FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -I INPUT -p udp -s 10.66.66.0/24 -j ACCEPT
-PostDown = iptables -D FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -D FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -D INPUT -p udp -s 10.66.66.0/24 -j ACCEPT
+PostUp = nft add table ip wg_nat; nft add chain ip wg_nat postrouting { type nat hook postrouting priority 100 \; }; nft add rule ip wg_nat postrouting oifname "eth0" ip saddr 10.66.66.0/24 masquerade; nft add table ip wg_filter; nft add chain ip wg_filter forward { type filter hook forward priority 0 \; }; nft add rule ip wg_filter forward iifname "eth0" oifname "wg0" ip saddr 10.66.66.0/24 accept; nft add rule ip wg_filter forward iifname "wg0" ip daddr 10.66.66.0/24 accept
+PostDown = nft delete table ip wg_nat; nft delete table ip wg_filter
 
 ### Client MaVM
 [Peer]
@@ -244,12 +233,15 @@ PresharedKey = t+rgwqN3j8LccHtgi7GULlwBrf8ghY8HAbZN6cagP8s=
 AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128
 ```
 
-Après avoir sauvegardé le fichier, nous pouvons activer l'ip forwarding :
+Après avoir sauvegardé le fichier, nous activons l'IP forwarding via un fichier dédié (bonne pratique Debian 13) :
 
 ```bash
-echo 'net.ipv4.ip_forward=1
+cat > /etc/sysctl.d/99-wireguard.conf << 'EOF'
+net.ipv4.ip_forward=1
 net.ipv4.conf.all.proxy_arp=1
-net.ipv6.conf.all.forwarding=1' | tee -a /etc/sysctl.conf
+net.ipv6.conf.all.forwarding=1
+EOF
+sysctl --system
 ```
 
 On peut ensuite redémarrer notre VPS HMS :
@@ -279,8 +271,8 @@ Voici à quoi ressemble le fichier modifié :
 Address = 10.66.66.1/24,fd42:42:42::1/64
 ListenPort = 62052
 PrivateKey = qA0nlMcMHLUGLgbsQ7zsVlvg2NartzikMUMJRNwdeVs=
-PostUp = iptables -I FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -I FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -I INPUT -p udp -s 10.66.66.0/24 -j ACCEPT
-PostDown = iptables -D FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -D FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -D INPUT -p udp -s 10.66.66.0/24 -j ACCEPT
+PostUp = nft add table ip wg_nat; nft add chain ip wg_nat postrouting { type nat hook postrouting priority 100 \; }; nft add rule ip wg_nat postrouting oifname "eth0" ip saddr 10.66.66.0/24 masquerade; nft add table ip wg_filter; nft add chain ip wg_filter forward { type filter hook forward priority 0 \; }; nft add rule ip wg_filter forward iifname "eth0" oifname "wg0" ip saddr 10.66.66.0/24 accept; nft add rule ip wg_filter forward iifname "wg0" ip daddr 10.66.66.0/24 accept
+PostDown = nft delete table ip wg_nat; nft delete table ip wg_filter
 
 ### Client MaVM
 [Peer]
@@ -295,29 +287,22 @@ Une fois le fichier sauvegardé, nous pouvons modifier la configuration côté c
 nano wg0-client-MaVM.conf
 ```
 
-Il faut remplacer l'adresse IP `10.66.66.2` par l'adresse ip supplémentaire et également rajouter la ligne `PostUp` ci-dessous en dessous de `DNS`.
-
-**Debian 11 / 12 :**
-
-```ini
-PostUp = iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o wg0 -j TCPMSS --clamp-mss-to-pmtu
-```
-
-**Debian 13 :**
+Il faut remplacer l'adresse IP `10.66.66.2` par l'adresse ip supplémentaire et également rajouter les lignes `PostUp`/`PostDown` ci-dessous en dessous de `DNS` :
 
 ```ini
 PostUp = nft add table ip wg_mss; nft add chain ip wg_mss postrouting { type filter hook postrouting priority mangle \; }; nft add rule ip wg_mss postrouting oifname "wg0" tcp flags syn tcp option maxseg size set rt mtu
 PostDown = nft delete table ip wg_mss
 ```
 
-Voici à quoi ressemble le fichier client modifié (exemple avec Debian 12) :
+Voici à quoi ressemble le fichier client modifié :
 
 ```ini
 [Interface]
 PrivateKey = MM2OFVfYrJFtdAgebfPJL2hDtjaslufqoJ1yzvdN+X8=
 Address = 163.5.121.254/32,fd42:42:42::2/128
 DNS = 1.1.1.1,1.0.0.1
-PostUp = iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o wg0 -j TCPMSS --clamp-mss-to-pmtu
+PostUp = nft add table ip wg_mss; nft add chain ip wg_mss postrouting { type filter hook postrouting priority mangle \; }; nft add rule ip wg_mss postrouting oifname "wg0" tcp flags syn tcp option maxseg size set rt mtu
+PostDown = nft delete table ip wg_mss
 
 [Peer]
 PublicKey = udEYVLpHnWb4o7kgjZ4pCnfUaVjqd9inXAUmak9mXxM=
@@ -345,13 +330,15 @@ Notre client est maintenant prêt à être déployé !
 
 Notre profil est maintenant prêt à être déployé sur n'importe quelle plateforme (Windows, Linux, Android, macOS, iOS et plein d'autres !)
 
-Voici les commandes pour déployer le profil sur un linux en base Debian :
-
-**Debian 11 / 12 :**
+Voici les commandes pour déployer le profil sur un Linux Debian 13 :
 
 ```bash
-# Installer wireguard, Resolvconf et IPTables
-apt install wireguard-tools resolvconf iptables
+# Installer wireguard et NFTables
+apt install wireguard-tools nftables
+
+# Configurer systemd-resolved (remplace resolvconf)
+systemctl enable --now systemd-resolved
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
 # Installer le profil Wireguard :
 nano /etc/wireguard/wg0.conf
@@ -364,24 +351,6 @@ systemctl enable wg-quick@wg0 --now
 # Vous pouvez vérifier en faisant un
 ip a
 # ou un
-curl ifconfig.me
-```
-
-**Debian 13 :**
-
-```bash
-# Installer wireguard, Resolvconf et NFTables
-apt install wireguard-tools resolvconf nftables
-
-# Installer le profil Wireguard :
-nano /etc/wireguard/wg0.conf
-# (puis coller le profil wireguard (wg0-client-) modifié à l'intérieur)
-
-# Activer et lancer notre profil wireguard au démarrage :
-systemctl enable wg-quick@wg0 --now
-
-# Et voilà ! Votre IP est maintenant montée sur cet appareil !
-ip a
 curl ifconfig.me
 ```
 
@@ -433,6 +402,8 @@ Donner la permission au script de s'exécuter :
 ```bash
 chmod +x /usr/local/bin/arping-loop.sh
 ```
+
+### Étape 3 : Créer le service systemd
 
 Créer le service systemd `arping-loop.service` dans `/etc/systemd/system/` :
 
@@ -508,7 +479,7 @@ Et voilà, vous avez maintenant des IP Failovers disponibles chez vous, protég�
 
 Cette astuce m'a permis de franchir un grand pas dans l'auto-hébergement, que ce soit pour des services pour moi ou pour les autres, car elle m'offre la puissance d'avoir des VPS avec des IP dédiées à prix réduit et avec un service de qualité similaire.
 
-Ce tutoriel existe initialement depuis juillet 2020, mais a été remasterisé récemment en septembre 2024 avec beaucoup d'améliorations et de mises à jour, puis adapté pour Debian 13 en mai 2026.
+Ce tutoriel existe initialement depuis juillet 2020, mais a été remasterisé récemment en septembre 2024 avec beaucoup d'améliorations et de mises à jour, puis adapté exclusivement pour Debian 13 en juin 2026.
 
 Je tiens à remercier :
 - [@Aven678](https://github.com/Aven678) : Pour avoir simplifié énormément la gestion des IPs et la création de profils.
@@ -517,7 +488,7 @@ Je tiens à remercier :
 - [@Gogow_](https://github.com/Gogowwww) : Qui m'a également fait débugger plusieurs fois ma doc.
 - [@Diggyworld](https://github.com/Diggyworld) : Qui a remarqué et passé toute une soirée à trouver une solution pour ces fichus soucis de MTU.
 - [@titin](https://git.feelb.io/Titin) : Pour avoir trouvé la commande arping pour régler certains soucis de routage.
-- [@Hecate](https://github.com/TheHecateII) : Pour la commande iptables pour les soucis de MTU.
+- [@Hecate](https://github.com/TheHecateII) : Pour la commande nftables pour les soucis de MTU.
 - [@TheOrion-OVH](https://github.com/TheOrion-OVH) : Pour le correctif ARP qui fonctionnais une fois sur 2 et quelques erreurs de typo dans la documentation.
 - Et plein d'autres personnes qui m'ont envoyé un message sur Discord pour m'aider à améliorer cette documentation ou me remercier.
 
