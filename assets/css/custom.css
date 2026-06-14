@@ -1,53 +1,291 @@
-/* ==================================================
-   Custom styles — Blog de Kofy
-   Injecté via _includes/head_custom.html
-   Thème : Chirpy 7.x — palette inspirée de GitHub
-   ================================================== */
+/* ==================================================================
+   Blog de Kofy — Système de design (UI/UX)
+   Injecté après le thème via _includes/metadata-hook.html
+   Surcharge les variables CSS de Chirpy 7.x + couche de composants.
+   Identité : homelab / terminal — vert émeraude + bleu, base GitHub.
+   ================================================================== */
 
-/* ==================================================
-   1. Variables de thème
-   ================================================== */
-
-/* ---------- Mode sombre ---------- */
-[data-mode='dark'],
-html[data-mode='dark'] {
-  --sidebar-bg:      #0d1117;
-  --card-bg:         #161b22;
-  --card-border:     #21262d;
-  --accent:          #7ee787;
-  --accent-2:        #58a6ff;
-  --accent-soft:     rgba(126, 231, 135, 0.14);
-  --accent-2-soft:   rgba(88, 166, 255, 0.12);
-  --glow:            rgba(126, 231, 135, 0.45);
-  --on-accent:       #0d1117; /* texte lisible sur fond --accent (vert clair) */
-  --tag-bg:          #1f2937;
-  --tag-color:       #7ee787;
-  --code-border:     #30363d;
-  --scrollbar-thumb: #30363d;
-  --shadow-color:    rgba(1, 4, 9, 0.55);
-}
-
-/* ---------- Mode clair ---------- */
+/* ==================================================================
+   1. TOKENS DE BASE (indépendants du mode)
+   ================================================================== */
 :root {
-  --accent:          #1a7f37;
-  --accent-2:        #0969da;
-  --accent-soft:     rgba(26, 127, 55, 0.10);
-  --accent-2-soft:   rgba(9, 105, 218, 0.08);
-  --glow:            rgba(26, 127, 55, 0.30);
-  --on-accent:       #ffffff; /* texte lisible sur fond --accent (vert foncé) */
-  --tag-bg:          #dafbe1;
-  --tag-color:       #1a7f37;
-  --card-border:     #d0d7de;
-  --code-border:     #d0d7de;
-  --scrollbar-thumb: #c9d1d9;
-  --shadow-color:    rgba(140, 149, 159, 0.25);
+  /* Typographie */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+
+  /* Rayons */
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   16px;
+  --r-pill: 999px;
+
+  /* Mouvement */
+  --ease:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 0.15s;
+  --dur-2: 0.25s;
+  --dur-3: 0.4s;
+
+  /* ---------- Palette SOMBRE (valeurs brutes) ---------- */
+  --ds-bg:           #0d1117;
+  --ds-surface:      #161b22;
+  --ds-surface-2:    #1c232e;
+  --ds-border:       #2a313c;
+  --ds-border-soft:  #21262d;
+  --ds-text:         #c9d1d9;
+  --ds-muted:        #8b949e;
+  --ds-muted-hi:     #b7c0cb;
+  --ds-heading:      #f0f6fc;
+  --ds-link:         #58a6ff;
+  --ds-link-ul:      rgba(88, 166, 255, 0.35);
+  --ds-accent:       #56d364;
+  --ds-accent-2:     #58a6ff;
+  --ds-on-accent:    #06140b;
+  --ds-glow:         rgba(86, 211, 100, 0.40);
+  --ds-tag-bg:       rgba(86, 211, 100, 0.12);
+  --ds-tag-border:   rgba(86, 211, 100, 0.38);
+  --ds-tag-text:     #7ee787;
+  --ds-inline-code:  rgba(110, 118, 129, 0.20);
+  --ds-tb-odd:       #161b22;
+  --ds-tb-even:      #11161d;
+  --ds-shadow:       0 12px 32px rgba(1, 4, 9, 0.55);
+  --ds-shadow-sm:    0 1px 2px rgba(1, 4, 9, 0.5);
+  --ds-topbar:       rgba(13, 17, 23, 0.72);
+  --ds-hover-bg:     rgba(88, 166, 255, 0.10);
+
+  /* ---------- Palette CLAIRE (valeurs brutes) ---------- */
+  --ls-bg:           #ffffff;
+  --ls-surface:      #ffffff;
+  --ls-surface-2:    #f6f8fa;
+  --ls-border:       #d8dee4;
+  --ls-border-soft:  #eaeef2;
+  --ls-text:         #1f2328;
+  --ls-muted:        #59636e;
+  --ls-muted-hi:     #1f2328;
+  --ls-heading:      #1f2328;
+  --ls-link:         #0969da;
+  --ls-link-ul:      rgba(9, 105, 218, 0.30);
+  --ls-accent:       #1a7f37;
+  --ls-accent-2:     #0969da;
+  --ls-on-accent:    #ffffff;
+  --ls-glow:         rgba(26, 127, 55, 0.28);
+  --ls-tag-bg:       #dafbe1;
+  --ls-tag-border:   #1a7f37;
+  --ls-tag-text:     #116329;
+  --ls-inline-code:  rgba(175, 184, 193, 0.20);
+  --ls-tb-odd:       #f6f8fa;
+  --ls-tb-even:      #ffffff;
+  --ls-shadow:       0 12px 32px rgba(140, 149, 159, 0.22);
+  --ls-shadow-sm:    0 1px 2px rgba(140, 149, 159, 0.14);
+  --ls-topbar:       rgba(255, 255, 255, 0.72);
+  --ls-hover-bg:     rgba(9, 105, 218, 0.08);
 }
 
-/* ==================================================
-   2. Typographie & base
-   ================================================== */
+/* ==================================================================
+   2. MAPPING MODE → variables Chirpy + tokens composants (--k-*)
+   On reproduit exactement les sélecteurs de Chirpy (_base.scss) pour
+   l'emporter par ordre de cascade (clair = défaut, sombre, auto).
+   ================================================================== */
+
+/* ----- CLAIR ----- */
+@media (prefers-color-scheme: light) {
+  html:not([data-mode]),
+  html[data-mode='light'] {
+    --main-bg: var(--ls-bg);
+    --mask-bg: var(--ls-surface-2);
+    --main-border-color: var(--ls-border-soft);
+    --text-color: var(--ls-text);
+    --text-muted-color: var(--ls-muted);
+    --text-muted-highlight-color: var(--ls-muted-hi);
+    --heading-color: var(--ls-heading);
+    --label-color: var(--ls-muted);
+    --link-color: var(--ls-link);
+    --link-underline-color: var(--ls-link-ul);
+    --post-list-text-color: var(--ls-text);
+    --button-bg: var(--ls-surface);
+    --btn-border-color: var(--ls-border);
+    --card-bg: var(--ls-surface);
+    --card-hover-bg: var(--ls-surface-2);
+    --card-header-bg: var(--ls-surface-2);
+    --card-shadow: var(--ls-shadow-sm);
+    --sidebar-bg: var(--ls-surface-2);
+    --sidebar-border-color: var(--ls-border-soft);
+    --sidebar-muted-color: var(--ls-muted);
+    --sidebar-active-color: var(--ls-heading);
+    --sidebar-hover-bg: var(--ls-hover-bg);
+    --site-subtitle-color: var(--ls-muted);
+    --avatar-border-color: var(--ls-accent);
+    --topbar-bg: var(--ls-topbar);
+    --topbar-text-color: var(--ls-text);
+    --tb-odd-bg: var(--ls-tb-odd);
+    --tb-even-bg: var(--ls-tb-even);
+    --tb-border-color: var(--ls-border-soft);
+    --tag-hover: var(--ls-surface-2);
+    --inline-code-bg: var(--ls-inline-code);
+    --toc-highlight: var(--ls-accent-2);
+    --k-accent: var(--ls-accent);
+    --k-accent-2: var(--ls-accent-2);
+    --k-on-accent: var(--ls-on-accent);
+    --k-glow: var(--ls-glow);
+    --k-tag-bg: var(--ls-tag-bg);
+    --k-tag-border: var(--ls-tag-border);
+    --k-tag-text: var(--ls-tag-text);
+    --k-border: var(--ls-border);
+    --k-surface: var(--ls-surface);
+    --k-surface-2: var(--ls-surface-2);
+    --k-shadow: var(--ls-shadow);
+    --k-shadow-sm: var(--ls-shadow-sm);
+  }
+  html[data-mode='dark'] {
+    --main-bg: var(--ds-bg);
+    --mask-bg: var(--ds-surface-2);
+    --main-border-color: var(--ds-border-soft);
+    --text-color: var(--ds-text);
+    --text-muted-color: var(--ds-muted);
+    --text-muted-highlight-color: var(--ds-muted-hi);
+    --heading-color: var(--ds-heading);
+    --label-color: var(--ds-muted);
+    --link-color: var(--ds-link);
+    --link-underline-color: var(--ds-link-ul);
+    --post-list-text-color: var(--ds-text);
+    --button-bg: var(--ds-surface);
+    --btn-border-color: var(--ds-border);
+    --card-bg: var(--ds-surface);
+    --card-hover-bg: var(--ds-surface-2);
+    --card-header-bg: var(--ds-surface-2);
+    --card-shadow: var(--ds-shadow-sm);
+    --sidebar-bg: var(--ds-bg);
+    --sidebar-border-color: var(--ds-border-soft);
+    --sidebar-muted-color: var(--ds-muted);
+    --sidebar-active-color: var(--ds-heading);
+    --sidebar-hover-bg: var(--ds-hover-bg);
+    --site-subtitle-color: var(--ds-muted);
+    --avatar-border-color: var(--ds-accent);
+    --topbar-bg: var(--ds-topbar);
+    --topbar-text-color: var(--ds-text);
+    --tb-odd-bg: var(--ds-tb-odd);
+    --tb-even-bg: var(--ds-tb-even);
+    --tb-border-color: var(--ds-border);
+    --tag-hover: var(--ds-surface-2);
+    --inline-code-bg: var(--ds-inline-code);
+    --toc-highlight: var(--ds-accent-2);
+    --k-accent: var(--ds-accent);
+    --k-accent-2: var(--ds-accent-2);
+    --k-on-accent: var(--ds-on-accent);
+    --k-glow: var(--ds-glow);
+    --k-tag-bg: var(--ds-tag-bg);
+    --k-tag-border: var(--ds-tag-border);
+    --k-tag-text: var(--ds-tag-text);
+    --k-border: var(--ds-border);
+    --k-surface: var(--ds-surface);
+    --k-surface-2: var(--ds-surface-2);
+    --k-shadow: var(--ds-shadow);
+    --k-shadow-sm: var(--ds-shadow-sm);
+  }
+}
+
+/* ----- SOMBRE ----- */
+@media (prefers-color-scheme: dark) {
+  html:not([data-mode]),
+  html[data-mode='dark'] {
+    --main-bg: var(--ds-bg);
+    --mask-bg: var(--ds-surface-2);
+    --main-border-color: var(--ds-border-soft);
+    --text-color: var(--ds-text);
+    --text-muted-color: var(--ds-muted);
+    --text-muted-highlight-color: var(--ds-muted-hi);
+    --heading-color: var(--ds-heading);
+    --label-color: var(--ds-muted);
+    --link-color: var(--ds-link);
+    --link-underline-color: var(--ds-link-ul);
+    --post-list-text-color: var(--ds-text);
+    --button-bg: var(--ds-surface);
+    --btn-border-color: var(--ds-border);
+    --card-bg: var(--ds-surface);
+    --card-hover-bg: var(--ds-surface-2);
+    --card-header-bg: var(--ds-surface-2);
+    --card-shadow: var(--ds-shadow-sm);
+    --sidebar-bg: var(--ds-bg);
+    --sidebar-border-color: var(--ds-border-soft);
+    --sidebar-muted-color: var(--ds-muted);
+    --sidebar-active-color: var(--ds-heading);
+    --sidebar-hover-bg: var(--ds-hover-bg);
+    --site-subtitle-color: var(--ds-muted);
+    --avatar-border-color: var(--ds-accent);
+    --topbar-bg: var(--ds-topbar);
+    --topbar-text-color: var(--ds-text);
+    --tb-odd-bg: var(--ds-tb-odd);
+    --tb-even-bg: var(--ds-tb-even);
+    --tb-border-color: var(--ds-border);
+    --tag-hover: var(--ds-surface-2);
+    --inline-code-bg: var(--ds-inline-code);
+    --toc-highlight: var(--ds-accent-2);
+    --k-accent: var(--ds-accent);
+    --k-accent-2: var(--ds-accent-2);
+    --k-on-accent: var(--ds-on-accent);
+    --k-glow: var(--ds-glow);
+    --k-tag-bg: var(--ds-tag-bg);
+    --k-tag-border: var(--ds-tag-border);
+    --k-tag-text: var(--ds-tag-text);
+    --k-border: var(--ds-border);
+    --k-surface: var(--ds-surface);
+    --k-surface-2: var(--ds-surface-2);
+    --k-shadow: var(--ds-shadow);
+    --k-shadow-sm: var(--ds-shadow-sm);
+  }
+  html[data-mode='light'] {
+    --main-bg: var(--ls-bg);
+    --mask-bg: var(--ls-surface-2);
+    --main-border-color: var(--ls-border-soft);
+    --text-color: var(--ls-text);
+    --text-muted-color: var(--ls-muted);
+    --text-muted-highlight-color: var(--ls-muted-hi);
+    --heading-color: var(--ls-heading);
+    --label-color: var(--ls-muted);
+    --link-color: var(--ls-link);
+    --link-underline-color: var(--ls-link-ul);
+    --post-list-text-color: var(--ls-text);
+    --button-bg: var(--ls-surface);
+    --btn-border-color: var(--ls-border);
+    --card-bg: var(--ls-surface);
+    --card-hover-bg: var(--ls-surface-2);
+    --card-header-bg: var(--ls-surface-2);
+    --card-shadow: var(--ls-shadow-sm);
+    --sidebar-bg: var(--ls-surface-2);
+    --sidebar-border-color: var(--ls-border-soft);
+    --sidebar-muted-color: var(--ls-muted);
+    --sidebar-active-color: var(--ls-heading);
+    --sidebar-hover-bg: var(--ls-hover-bg);
+    --site-subtitle-color: var(--ls-muted);
+    --avatar-border-color: var(--ls-accent);
+    --topbar-bg: var(--ls-topbar);
+    --topbar-text-color: var(--ls-text);
+    --tb-odd-bg: var(--ls-tb-odd);
+    --tb-even-bg: var(--ls-tb-even);
+    --tb-border-color: var(--ls-border-soft);
+    --tag-hover: var(--ls-surface-2);
+    --inline-code-bg: var(--ls-inline-code);
+    --toc-highlight: var(--ls-accent-2);
+    --k-accent: var(--ls-accent);
+    --k-accent-2: var(--ls-accent-2);
+    --k-on-accent: var(--ls-on-accent);
+    --k-glow: var(--ls-glow);
+    --k-tag-bg: var(--ls-tag-bg);
+    --k-tag-border: var(--ls-tag-border);
+    --k-tag-text: var(--ls-tag-text);
+    --k-border: var(--ls-border);
+    --k-surface: var(--ls-surface);
+    --k-surface-2: var(--ls-surface-2);
+    --k-shadow: var(--ls-shadow);
+    --k-shadow-sm: var(--ls-shadow-sm);
+  }
+}
+
+/* ==================================================================
+   3. BASE
+   ================================================================== */
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   font-size: 15.5px;
   line-height: 1.75;
   -webkit-font-smoothing: antialiased;
@@ -55,24 +293,174 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/* Décalage pour que les ancres (TOC, liens #) ne passent pas sous la barre fixe */
+::selection {
+  background: var(--k-accent-2);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--k-accent-2);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--k-border); border-radius: var(--r-pill); border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--k-accent-2); background-clip: padding-box; }
+
+/* ==================================================================
+   4. SIDEBAR & MARQUE
+   ================================================================== */
+#sidebar {
+  border-right: 1px solid var(--sidebar-border-color);
+}
+
+/* Titre du site en dégradé animé (.site-title est l'ancre Chirpy) */
+#sidebar .site-title {
+  font-weight: 800;
+  font-size: 1.28rem;
+  letter-spacing: -0.03em;
+  color: var(--k-accent);
+  background: linear-gradient(115deg, var(--k-accent) 0%, var(--k-accent-2) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#sidebar .site-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-top: 0.35rem;
+}
+
+/* Avatar : halo accent (l'ancre est #avatar) */
+#avatar {
+  box-shadow: 0 0 0 4px var(--k-glow);
+  transition: box-shadow var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
+}
+
+#avatar:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 22px var(--k-glow);
+}
+
+#sidebar .nav-link {
+  border-radius: var(--r-sm);
+  font-weight: 500;
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+}
+
+#sidebar .nav-link.active {
+  position: relative;
+  color: var(--k-accent-2);
+  font-weight: 600;
+}
+
+#sidebar .nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, var(--k-accent), var(--k-accent-2));
+}
+
+/* Icônes sociales en bas de sidebar */
+.sidebar-bottom a:hover {
+  color: var(--k-accent-2) !important;
+  transform: translateY(-2px);
+  transition: transform var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+}
+
+/* ==================================================================
+   5. TOPBAR (effet verre dépoli)
+   ================================================================== */
+#topbar-wrapper {
+  background: var(--topbar-bg);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--main-border-color);
+}
+
+/* ==================================================================
+   6. CARTES (page d'accueil + suggestions)
+   La vraie carte est .card-wrapper ; .post-preview est l'ancre interne.
+   ================================================================== */
+.card-wrapper {
+  position: relative;
+  border: 1px solid var(--k-border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease);
+}
+
+.card-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--k-accent), var(--k-accent-2));
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform var(--dur-2) var(--ease-out);
+  z-index: 2;
+}
+
+.card-wrapper:hover {
+  transform: translateY(-4px);
+  border-color: var(--k-accent);
+  box-shadow: var(--k-shadow);
+}
+
+.card-wrapper:hover::before { transform: scaleY(1); }
+
+/* On neutralise la bordure/le padding redondants de l'ancre interne */
+.post-preview {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.card-title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.card-wrapper:hover .card-title { color: var(--k-accent-2); }
+
+/* ==================================================================
+   7. CONTENU D'ARTICLE  (classe réelle : .content)
+   ================================================================== */
+.content {
+  font-size: 1rem;
+}
+
 .content :is(h1, h2, h3, h4, h5, h6) {
   scroll-margin-top: 4.5rem;
 }
 
 .content h2 {
   position: relative;
-  padding-bottom: 0.3rem;
-  margin-top: 2.2rem;
-  border-bottom: 1px solid var(--card-border);
+  margin-top: 2.4rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--main-border-color);
 }
 
-/* Petit accent dégradé sous le trait des titres de section */
 .content h2::after {
   content: "";
   position: absolute;
@@ -81,167 +469,80 @@ h1, h2, h3, h4, h5, h6 {
   width: 2.5rem;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: linear-gradient(90deg, var(--k-accent), var(--k-accent-2));
 }
 
-::selection {
-  background: var(--accent-2);
-  color: #fff;
+.content a {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
 }
 
-/* Accessibilité : focus clavier visible */
-:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: 2px;
-  border-radius: 4px;
+.content a:hover { border-bottom-color: var(--link-color); }
+
+.content img {
+  border-radius: var(--r-md);
 }
 
-/* ==================================================
-   3. Sidebar
-   ================================================== */
-#sidebar {
-  border-right: 1px solid var(--card-border);
+/* Citations simples (hors encarts .prompt-*) */
+.content blockquote:not([class*='prompt-']) {
+  border-left: 3px solid var(--k-accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--k-surface-2);
+  padding: 0.6rem 1rem;
 }
 
-/* Titre du site en dégradé (classe réelle Chirpy : .site-title est le <a>) */
-#sidebar .site-title {
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: -0.03em;
-  color: var(--accent); /* repli si background-clip non supporté */
-  background: linear-gradient(115deg, var(--accent) 0%, var(--accent-2) 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* ==================================================================
+   8. TABLEAUX
+   ================================================================== */
+.table-wrapper {
+  border: 1px solid var(--k-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--k-shadow-sm);
+  margin: 1.4rem 0;
+  /* on garde le overflow-x:auto de Chirpy → défilement des tableaux larges */
 }
 
-#sidebar .site-subtitle {
-  font-size: 0.78rem;
-  opacity: 0.7;
-}
-
-/* Avatar : la classe réelle est l'ancre #avatar (et non img.avatar) */
-#avatar {
-  border: 2px solid var(--accent);
-  box-shadow: 0 0 12px var(--accent-soft);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-#avatar:hover {
-  box-shadow: 0 0 22px var(--glow);
-  transform: scale(1.03);
-}
-
-#sidebar .nav-link {
-  border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-#sidebar .nav-link:hover {
-  background: var(--accent-2-soft);
-  color: var(--accent-2);
-}
-
-#sidebar .nav-link.active {
-  background: var(--accent-2-soft);
-  color: var(--accent-2);
-}
-
-/* ==================================================
-   4. Cartes d'articles (page d'accueil + suggestions)
-   La vraie carte est .card-wrapper ; .post-preview est l'ancre interne.
-   ================================================== */
-.card-wrapper {
-  position: relative;
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-/* Barre d'accent verticale qui se déploie au survol */
-.card-wrapper::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--accent), var(--accent-2));
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.25s ease;
-  z-index: 1;
-}
-
-.card-wrapper:hover {
-  transform: translateY(-3px);
-  border-color: var(--accent);
-  box-shadow: 0 8px 28px var(--shadow-color);
-}
-
-.card-wrapper:hover::before {
-  transform: scaleY(1);
-}
-
-.card-wrapper:hover .card-title {
-  color: var(--accent-2);
-}
-
-/* On neutralise la bordure/le padding redondants que l'ancienne feuille
-   ajoutait sur l'ancre interne (effet « carte dans une carte ») */
-.post-preview {
-  border: 0;
-  border-radius: inherit;
-  padding: 0;
+.content table {
+  width: 100%;
   margin: 0;
-  box-shadow: none;
-  transform: none;
+  border-collapse: collapse;
 }
 
-.card-title {
-  transition: color 0.2s ease;
+.content table th {
+  background: var(--k-surface-2);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 2px solid var(--k-border);
 }
 
-/* ==================================================
-   5. Tags & libellés
-   ================================================== */
-.post-tag,
-.btn.btn-outline-primary,
-.tag {
-  background: var(--tag-bg) !important;
-  color: var(--tag-color) !important;
-  border: 1px solid var(--tag-color) !important;
-  border-radius: 20px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  padding: 2px 10px;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
+.content table td { padding: 0.55rem 0.9rem; }
 
-.post-tag:hover,
-.tag:hover {
-  opacity: 0.78;
-  transform: translateY(-1px);
-}
+.content table tbody tr { transition: background var(--dur-1) var(--ease); }
+.content table tbody tr:hover { background: var(--k-surface-2); }
 
-/* ==================================================
-   6. Blocs de code
+/* ==================================================================
+   9. BLOCS DE CODE
    Structure Chirpy : .highlighter-rouge > .code-header + .highlight
-   ================================================== */
-code, pre, .highlight {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+   (on conserve la coloration syntaxique native du thème)
+   ================================================================== */
+code, pre {
+  font-family: var(--font-mono) !important;
   font-size: 0.84rem;
 }
 
-/* La bordure/le rayon enveloppent l'en-tête ET le code en un seul bloc */
 .highlighter-rouge {
-  border: 1px solid var(--code-border);
-  border-radius: 10px;
+  border: 1px solid var(--k-border);
+  border-radius: var(--r-md);
   overflow: hidden;
-  margin: 1.2rem 0;
-  box-shadow: 0 1px 3px var(--shadow-color);
+  box-shadow: var(--k-shadow-sm);
+  margin: 1.4rem 0;
+}
+
+.highlighter-rouge .code-header {
+  border-bottom: 1px solid var(--k-border);
 }
 
 .highlighter-rouge .highlight {
@@ -250,208 +551,167 @@ code, pre, .highlight {
   border-radius: 0;
 }
 
+/* Bouton « copier » */
+.code-header button:hover { color: var(--k-accent-2) !important; }
+
 /* Numéros de ligne (classe réelle : .rouge-gutter) */
 .rouge-gutter,
-td.rouge-gutter {
-  user-select: none;
-}
-
-.rouge-gutter .lineno {
-  opacity: 0.35;
-  padding-right: 0.8rem;
-}
-
-/* Bouton « copier » un peu plus réactif */
-.code-header button:hover {
-  color: var(--accent-2) !important;
-}
+td.rouge-gutter { user-select: none; }
+.rouge-gutter .lineno { opacity: 0.4; padding-right: 0.8rem; }
 
 /* Code en ligne */
 :not(pre) > code {
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 0.85em;
-  border: 1px solid var(--code-border);
+  background: var(--inline-code-bg);
+  border-radius: var(--r-sm);
+  padding: 0.15em 0.42em;
+  font-size: 0.86em;
 }
 
-/* ==================================================
-   7. Encarts (prompts)
-   ================================================== */
-.prompt-tip,
-.prompt-info,
-.prompt-warning,
-.prompt-danger {
-  border-radius: 8px;
+/* ==================================================================
+   10. ENCARTS (prompts)
+   ================================================================== */
+[class^='prompt-'],
+[class*=' prompt-'] {
+  border-radius: var(--r-md);
   border-left-width: 4px !important;
-  padding: 0.75rem 1rem;
-  margin: 1rem 0;
 }
 
-.prompt-tip     { border-left-color: #3fb950 !important; background: rgba(63,  185, 80,  0.08); }
-.prompt-info    { border-left-color: #58a6ff !important; background: rgba(88,  166, 255, 0.08); }
-.prompt-warning { border-left-color: #d29922 !important; background: rgba(210, 153, 34,  0.08); }
-.prompt-danger  { border-left-color: #f85149 !important; background: rgba(248, 81,  73,  0.08); }
-
-/* ==================================================
-   8. Table des matières (TOC)
-   ================================================== */
+/* ==================================================================
+   11. TABLE DES MATIÈRES (TOC)
+   ================================================================== */
 #toc-wrapper {
-  border-left: 2px solid var(--card-border);
-  padding-left: 0.8rem;
+  border-left: 1px solid var(--main-border-color);
+  padding-left: 0.85rem;
 }
 
-#toc .nav-link:hover {
-  color: var(--accent);
+#toc .nav-link {
+  border-left: 2px solid transparent;
+  padding-left: 0.6rem;
+  margin-left: -0.85rem;
+  transition: color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
 }
+
+#toc .nav-link:hover { color: var(--toc-highlight); }
 
 #toc .nav-link.active {
-  color: var(--accent);
+  color: var(--toc-highlight);
+  border-left-color: var(--toc-highlight);
   font-weight: 600;
 }
 
-/* ==================================================
-   9. Contenu d'article (classe réelle : .content, pas .post-content)
-   ================================================== */
-.content a {
-  color: var(--accent-2);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.15s ease;
+/* ==================================================================
+   12. TAGS & PAGINATION
+   ================================================================== */
+.post-tag,
+.tag,
+.btn.btn-outline-primary {
+  background: var(--k-tag-bg) !important;
+  color: var(--k-tag-text) !important;
+  border: 1px solid var(--k-tag-border) !important;
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 2px 10px;
+  transition: transform var(--dur-1) var(--ease), filter var(--dur-1) var(--ease);
 }
 
-.content a:hover {
-  border-bottom-color: var(--accent-2);
+.post-tag:hover,
+.tag:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
 }
 
-/* Images de contenu : coins arrondis discrets */
-.content img {
-  border-radius: 8px;
+.pagination .page-link {
+  border-radius: var(--r-sm) !important;
+  margin: 0 0.15rem;
+  border-color: var(--k-border);
+  color: var(--link-color);
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
 }
 
-/* ---------- Tableaux ---------- */
-.content table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 1.2rem 0;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--card-border);
+.pagination .page-item.active .page-link,
+.pagination .page-link:hover {
+  background: var(--k-accent-2);
+  border-color: var(--k-accent-2);
+  color: #fff;
 }
 
-.content table th {
-  background: var(--accent-2-soft);
-  font-weight: 600;
-  padding: 0.6rem 0.9rem;
-  text-align: left;
-  border-bottom: 2px solid var(--card-border);
-}
-
-.content table td {
-  padding: 0.55rem 0.9rem;
-  border-bottom: 1px solid var(--card-border);
-}
-
-.content table tr:last-child td { border-bottom: none; }
-.content table tr:hover td { background: var(--accent-2-soft); }
-
-/* ==================================================
-   10. Boutons de partage
-   ================================================== */
+/* ==================================================================
+   13. PARTAGE, PIED DE PAGE, RETOUR EN HAUT, PROGRESSION
+   ================================================================== */
 .share-icons a {
-  transition: transform 0.2s ease, color 0.2s ease;
   display: inline-block;
+  transition: transform var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
 }
 
 .share-icons a:hover {
   transform: translateY(-2px) scale(1.1);
-  color: var(--accent-2);
+  color: var(--k-accent-2);
 }
 
-/* ==================================================
-   11. Barre de progression de lecture
-   (élément injecté par assets/js/reading-progress.js)
-   ================================================== */
+footer[aria-label="Site Info"] {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  border-top: 1px solid var(--main-border-color);
+  padding-top: 1rem;
+}
+
+#back-to-top {
+  background: var(--k-accent) !important;
+  color: var(--k-on-accent) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 4px 14px var(--k-glow) !important;
+  transition: transform var(--dur-1) var(--ease);
+}
+
+#back-to-top:hover { transform: translateY(-3px); }
+
 #reading-progress {
   position: fixed;
   top: 0;
   left: 0;
   height: 3px;
   width: 0;
-  z-index: 1100;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 8px var(--accent-soft);
+  z-index: 1200;
+  background: linear-gradient(90deg, var(--k-accent), var(--k-accent-2));
+  box-shadow: 0 0 10px var(--k-glow);
   pointer-events: none;
   transition: width 0.1s linear;
 }
 
-/* ==================================================
-   12. Scrollbar, retour en haut, footer
-   ================================================== */
-::-webkit-scrollbar { width: 7px; height: 7px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent-2); }
-
-#back-to-top {
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
-  border-radius: 50%;
-  box-shadow: 0 2px 12px var(--glow);
-  transition: transform 0.2s ease;
-}
-
-#back-to-top:hover {
-  transform: translateY(-3px);
-}
-
-/* Footer (élément <footer aria-label="Site Info">, sans id) */
-footer[aria-label="Site Info"] {
-  font-size: 0.8rem;
-  opacity: 0.65;
-  border-top: 1px solid var(--card-border);
-  padding-top: 1rem;
-}
-
-/* ==================================================
-   13. Animations (désactivées si l'utilisateur préfère moins d'animation)
-   ================================================== */
+/* ==================================================================
+   14. ANIMATIONS (désactivées si prefers-reduced-motion)
+   ================================================================== */
 @media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
-  /* Apparition en fondu des cartes de la page d'accueil, en cascade */
-  #post-list .card-wrapper {
-    animation: fadeInUp 0.5s ease both;
-  }
-
-  #post-list .card-wrapper:nth-child(1) { animation-delay: 0.00s; }
+  #post-list .card-wrapper { animation: fadeUp 0.5s var(--ease-out) both; }
+  #post-list .card-wrapper:nth-child(1) { animation-delay: 0s; }
   #post-list .card-wrapper:nth-child(2) { animation-delay: 0.06s; }
   #post-list .card-wrapper:nth-child(3) { animation-delay: 0.12s; }
   #post-list .card-wrapper:nth-child(4) { animation-delay: 0.18s; }
   #post-list .card-wrapper:nth-child(5) { animation-delay: 0.24s; }
-  #post-list .card-wrapper:nth-child(n+6) { animation-delay: 0.30s; }
+  #post-list .card-wrapper:nth-child(n + 6) { animation-delay: 0.3s; }
 
-  /* Dégradé animé du titre du site */
-  #sidebar .site-title {
-    animation: gradientShift 7s ease infinite;
-  }
+  #sidebar .site-title { animation: shimmer 7s ease infinite; }
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(14px); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes gradientShift {
+@keyframes shimmer {
   0%, 100% { background-position: 0% center; }
   50%      { background-position: 100% center; }
 }
 
-/* ==================================================
-   14. Responsive
-   ================================================== */
+/* ==================================================================
+   15. RESPONSIVE
+   ================================================================== */
 @media (max-width: 768px) {
   body { font-size: 15px; }
   .card-wrapper:hover { transform: none; }
+  #reading-progress { height: 2.5px; }
 }
