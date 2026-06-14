@@ -1,42 +1,57 @@
 /* ==================================================
    Custom styles — Blog de Kofy
    Injecté via _includes/head_custom.html
+   Thème : Chirpy 7.x — palette inspirée de GitHub
    ================================================== */
 
-/* ---------- Variables dark mode ---------- */
+/* ==================================================
+   1. Variables de thème
+   ================================================== */
+
+/* ---------- Mode sombre ---------- */
 [data-mode='dark'],
 html[data-mode='dark'] {
   --sidebar-bg:      #0d1117;
-  --body-bg:         #0d1117;
   --card-bg:         #161b22;
   --card-border:     #21262d;
-  --text-color:      #e6edf3;
-  --text-muted:      #8b949e;
   --accent:          #7ee787;
   --accent-2:        #58a6ff;
+  --accent-soft:     rgba(126, 231, 135, 0.14);
+  --accent-2-soft:   rgba(88, 166, 255, 0.12);
+  --glow:            rgba(126, 231, 135, 0.45);
+  --on-accent:       #0d1117; /* texte lisible sur fond --accent (vert clair) */
   --tag-bg:          #1f2937;
   --tag-color:       #7ee787;
   --code-border:     #30363d;
   --scrollbar-thumb: #30363d;
+  --shadow-color:    rgba(1, 4, 9, 0.55);
 }
 
-/* ---------- Variables light mode ---------- */
+/* ---------- Mode clair ---------- */
 :root {
   --accent:          #1a7f37;
   --accent-2:        #0969da;
+  --accent-soft:     rgba(26, 127, 55, 0.10);
+  --accent-2-soft:   rgba(9, 105, 218, 0.08);
+  --glow:            rgba(26, 127, 55, 0.30);
+  --on-accent:       #ffffff; /* texte lisible sur fond --accent (vert foncé) */
   --tag-bg:          #dafbe1;
   --tag-color:       #1a7f37;
   --card-border:     #d0d7de;
   --code-border:     #d0d7de;
   --scrollbar-thumb: #c9d1d9;
+  --shadow-color:    rgba(140, 149, 159, 0.25);
 }
 
-/* ---------- Typographie ---------- */
+/* ==================================================
+   2. Typographie & base
+   ================================================== */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 15.5px;
   line-height: 1.75;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -45,25 +60,60 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-.post-content h2 {
-  border-bottom: 2px solid var(--accent);
-  padding-bottom: 0.3rem;
-  margin-top: 2rem;
+/* Décalage pour que les ancres (TOC, liens #) ne passent pas sous la barre fixe */
+.content :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: 4.5rem;
 }
 
-/* ---------- Sidebar ---------- */
+.content h2 {
+  position: relative;
+  padding-bottom: 0.3rem;
+  margin-top: 2.2rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+/* Petit accent dégradé sous le trait des titres de section */
+.content h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 2.5rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+::selection {
+  background: var(--accent-2);
+  color: #fff;
+}
+
+/* Accessibilité : focus clavier visible */
+:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ==================================================
+   3. Sidebar
+   ================================================== */
 #sidebar {
   border-right: 1px solid var(--card-border);
 }
 
-#sidebar .site-title a {
+/* Titre du site en dégradé (classe réelle Chirpy : .site-title est le <a>) */
+#sidebar .site-title {
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: var(--accent); /* repli si background-clip non supporté */
+  background: linear-gradient(115deg, var(--accent) 0%, var(--accent-2) 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 #sidebar .site-subtitle {
@@ -71,14 +121,16 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.7;
 }
 
-#sidebar img.avatar {
+/* Avatar : la classe réelle est l'ancre #avatar (et non img.avatar) */
+#avatar {
   border: 2px solid var(--accent);
-  box-shadow: 0 0 12px rgba(126, 231, 135, 0.25);
-  transition: box-shadow 0.3s ease;
+  box-shadow: 0 0 12px var(--accent-soft);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-#sidebar img.avatar:hover {
-  box-shadow: 0 0 20px rgba(126, 231, 135, 0.45);
+#avatar:hover {
+  box-shadow: 0 0 22px var(--glow);
+  transform: scale(1.03);
 }
 
 #sidebar .nav-link {
@@ -86,28 +138,75 @@ h1, h2, h3, h4, h5, h6 {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-#sidebar .nav-link:hover,
-#sidebar .nav-link.active {
-  background: rgba(88, 166, 255, 0.1);
+#sidebar .nav-link:hover {
+  background: var(--accent-2-soft);
   color: var(--accent-2);
 }
 
-/* ---------- Post cards ---------- */
-.post-preview {
+#sidebar .nav-link.active {
+  background: var(--accent-2-soft);
+  color: var(--accent-2);
+}
+
+/* ==================================================
+   4. Cartes d'articles (page d'accueil + suggestions)
+   La vraie carte est .card-wrapper ; .post-preview est l'ancre interne.
+   ================================================== */
+.card-wrapper {
+  position: relative;
   border: 1px solid var(--card-border);
-  border-radius: 10px;
-  padding: 1.2rem 1.4rem;
-  margin-bottom: 1.2rem;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.post-preview:hover {
+/* Barre d'accent verticale qui se déploie au survol */
+.card-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.25s ease;
+  z-index: 1;
+}
+
+.card-wrapper:hover {
+  transform: translateY(-3px);
   border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 28px var(--shadow-color);
 }
 
-/* ---------- Tags ---------- */
+.card-wrapper:hover::before {
+  transform: scaleY(1);
+}
+
+.card-wrapper:hover .card-title {
+  color: var(--accent-2);
+}
+
+/* On neutralise la bordure/le padding redondants que l'ancienne feuille
+   ajoutait sur l'ancre interne (effet « carte dans une carte ») */
+.post-preview {
+  border: 0;
+  border-radius: inherit;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.card-title {
+  transition: color 0.2s ease;
+}
+
+/* ==================================================
+   5. Tags & libellés
+   ================================================== */
 .post-tag,
 .btn.btn-outline-primary,
 .tag {
@@ -118,31 +217,56 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.72rem;
   font-weight: 500;
   padding: 2px 10px;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.post-tag:hover { opacity: 0.75; }
+.post-tag:hover,
+.tag:hover {
+  opacity: 0.78;
+  transform: translateY(-1px);
+}
 
-/* ---------- Code ---------- */
+/* ==================================================
+   6. Blocs de code
+   Structure Chirpy : .highlighter-rouge > .code-header + .highlight
+   ================================================== */
 code, pre, .highlight {
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
   font-size: 0.84rem;
 }
 
-div.highlight,
-figure.highlight {
+/* La bordure/le rayon enveloppent l'en-tête ET le code en un seul bloc */
+.highlighter-rouge {
   border: 1px solid var(--code-border);
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   margin: 1.2rem 0;
+  box-shadow: 0 1px 3px var(--shadow-color);
 }
 
-.highlight .gutter .lineno {
-  opacity: 0.35;
+.highlighter-rouge .highlight {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+/* Numéros de ligne (classe réelle : .rouge-gutter) */
+.rouge-gutter,
+td.rouge-gutter {
   user-select: none;
-  padding-right: 1rem;
 }
 
+.rouge-gutter .lineno {
+  opacity: 0.35;
+  padding-right: 0.8rem;
+}
+
+/* Bouton « copier » un peu plus réactif */
+.code-header button:hover {
+  color: var(--accent-2) !important;
+}
+
+/* Code en ligne */
 :not(pre) > code {
   border-radius: 4px;
   padding: 1px 6px;
@@ -150,12 +274,14 @@ figure.highlight {
   border: 1px solid var(--code-border);
 }
 
-/* ---------- Prompt blocks ---------- */
+/* ==================================================
+   7. Encarts (prompts)
+   ================================================== */
 .prompt-tip,
 .prompt-info,
 .prompt-warning,
 .prompt-danger {
-  border-radius: 6px;
+  border-radius: 8px;
   border-left-width: 4px !important;
   padding: 0.75rem 1rem;
   margin: 1rem 0;
@@ -166,27 +292,44 @@ figure.highlight {
 .prompt-warning { border-left-color: #d29922 !important; background: rgba(210, 153, 34,  0.08); }
 .prompt-danger  { border-left-color: #f85149 !important; background: rgba(248, 81,  73,  0.08); }
 
-/* ---------- TOC ---------- */
+/* ==================================================
+   8. Table des matières (TOC)
+   ================================================== */
 #toc-wrapper {
   border-left: 2px solid var(--card-border);
   padding-left: 0.8rem;
 }
 
-#toc li a.nav-link:hover { color: var(--accent); }
-#toc li a.nav-link.active { color: var(--accent); font-weight: 600; }
+#toc .nav-link:hover {
+  color: var(--accent);
+}
 
-/* ---------- Liens articles ---------- */
-.post-content a {
+#toc .nav-link.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ==================================================
+   9. Contenu d'article (classe réelle : .content, pas .post-content)
+   ================================================== */
+.content a {
   color: var(--accent-2);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.15s ease;
 }
 
-.post-content a:hover { border-bottom-color: var(--accent-2); }
+.content a:hover {
+  border-bottom-color: var(--accent-2);
+}
+
+/* Images de contenu : coins arrondis discrets */
+.content img {
+  border-radius: 8px;
+}
 
 /* ---------- Tableaux ---------- */
-.post-content table {
+.content table {
   border-collapse: collapse;
   width: 100%;
   margin: 1.2rem 0;
@@ -195,45 +338,120 @@ figure.highlight {
   border: 1px solid var(--card-border);
 }
 
-.post-content table th {
-  background: rgba(88, 166, 255, 0.1);
+.content table th {
+  background: var(--accent-2-soft);
   font-weight: 600;
   padding: 0.6rem 0.9rem;
   text-align: left;
   border-bottom: 2px solid var(--card-border);
 }
 
-.post-content table td {
+.content table td {
   padding: 0.55rem 0.9rem;
   border-bottom: 1px solid var(--card-border);
 }
 
-.post-content table tr:last-child td { border-bottom: none; }
-.post-content table tr:hover td { background: rgba(88, 166, 255, 0.04); }
+.content table tr:last-child td { border-bottom: none; }
+.content table tr:hover td { background: var(--accent-2-soft); }
 
-/* ---------- Scrollbar ---------- */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent-2); }
-
-/* ---------- Back to top ---------- */
-#back-to-top {
-  background: var(--accent) !important;
-  border-radius: 50%;
-  box-shadow: 0 2px 10px rgba(126, 231, 135, 0.3);
+/* ==================================================
+   10. Boutons de partage
+   ================================================== */
+.share-icons a {
+  transition: transform 0.2s ease, color 0.2s ease;
+  display: inline-block;
 }
 
-/* ---------- Footer ---------- */
-#footer {
+.share-icons a:hover {
+  transform: translateY(-2px) scale(1.1);
+  color: var(--accent-2);
+}
+
+/* ==================================================
+   11. Barre de progression de lecture
+   (élément injecté par assets/js/reading-progress.js)
+   ================================================== */
+#reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  z-index: 1100;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 8px var(--accent-soft);
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+/* ==================================================
+   12. Scrollbar, retour en haut, footer
+   ================================================== */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-2); }
+
+#back-to-top {
+  background: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border-radius: 50%;
+  box-shadow: 0 2px 12px var(--glow);
+  transition: transform 0.2s ease;
+}
+
+#back-to-top:hover {
+  transform: translateY(-3px);
+}
+
+/* Footer (élément <footer aria-label="Site Info">, sans id) */
+footer[aria-label="Site Info"] {
   font-size: 0.8rem;
-  opacity: 0.6;
+  opacity: 0.65;
   border-top: 1px solid var(--card-border);
   padding-top: 1rem;
 }
 
-/* ---------- Responsive ---------- */
+/* ==================================================
+   13. Animations (désactivées si l'utilisateur préfère moins d'animation)
+   ================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Apparition en fondu des cartes de la page d'accueil, en cascade */
+  #post-list .card-wrapper {
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  #post-list .card-wrapper:nth-child(1) { animation-delay: 0.00s; }
+  #post-list .card-wrapper:nth-child(2) { animation-delay: 0.06s; }
+  #post-list .card-wrapper:nth-child(3) { animation-delay: 0.12s; }
+  #post-list .card-wrapper:nth-child(4) { animation-delay: 0.18s; }
+  #post-list .card-wrapper:nth-child(5) { animation-delay: 0.24s; }
+  #post-list .card-wrapper:nth-child(n+6) { animation-delay: 0.30s; }
+
+  /* Dégradé animé du titre du site */
+  #sidebar .site-title {
+    animation: gradientShift 7s ease infinite;
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% center; }
+  50%      { background-position: 100% center; }
+}
+
+/* ==================================================
+   14. Responsive
+   ================================================== */
 @media (max-width: 768px) {
   body { font-size: 15px; }
-  .post-preview { padding: 1rem; }
+  .card-wrapper:hover { transform: none; }
 }
