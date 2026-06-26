@@ -4,6 +4,8 @@ date: 2026-05-22 20:00:00 +0200
 categories: [Tutoriels, Réseau]
 tags: [wireguard, vpn, réseau, vps, ip-failover, nftables, linux, debian13]
 description: "Obtenir des adresses IP dédiées chez soi via un tunnel WireGuard vers un VPS, protégées par Anti-DDoS et peu chères. Compatible Debian 13 (Trixie)."
+image:
+  path: /assets/img/covers/wireguard-failover.svg
 ---
 
 > **Crédit :** Ce tutoriel est une adaptation de la documentation originale de [Tristan BRINGUIER (creeper.fr)](https://creeper.fr/wireguard), publiée sous licence [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Merci à lui pour ce travail !
