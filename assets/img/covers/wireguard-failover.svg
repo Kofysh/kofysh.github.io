@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="WireGuard IP Failover">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#0a0e13"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#56d364"/>
+      <stop offset="1" stop-color="#58a6ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#56d364" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#56d364" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <circle cx="1010" cy="150" r="360" fill="url(#glow)"/>
+  <rect x="0" y="0" width="8" height="630" fill="url(#title)"/>
+
+  <text x="80" y="200" font-family="'JetBrains Mono','Fira Code',ui-monospace,monospace" font-size="26" letter-spacing="5" fill="#56d364">TUTORIEL · VPN</text>
+
+  <text x="78" y="300" font-family="'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="92" font-weight="800" letter-spacing="-3" fill="url(#title)">WireGuard</text>
+  <text x="78" y="392" font-family="'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="92" font-weight="800" letter-spacing="-3" fill="#f0f6fc">IP Failover</text>
+
+  <text x="80" y="452" font-family="'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="30" fill="#8b949e">IPv4/IPv6 dédiées · Anti-DDoS · Debian 13</text>
+
+  <circle cx="88" cy="556" r="7" fill="#56d364"/>
+  <text x="106" y="564" font-family="'JetBrains Mono','Fira Code',ui-monospace,monospace" font-size="24" fill="#c9d1d9">blog de kofy</text>
+
+  <!-- icon: tunnel between home and vps with a lock -->
+  <g transform="translate(905,300)">
+    <!-- tunnel -->
+    <rect x="-150" y="-26" width="300" height="52" rx="26" fill="#161b22" stroke="#56d364" stroke-width="4"/>
+    <!-- moving dashes -->
+    <line x1="-120" y1="0" x2="120" y2="0" stroke="#56d364" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 26" opacity="0.85"/>
+    <!-- endpoints -->
+    <g fill="#0d1117" stroke="#58a6ff" stroke-width="4">
+      <circle cx="-150" cy="0" r="34"/>
+      <circle cx="150" cy="0" r="34"/>
+    </g>
+    <!-- home glyph (left) -->
+    <path d="M-164 4 L-150 -10 L-136 4 M-159 4 V14 H-141 V4" fill="none" stroke="#58a6ff" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- cloud/vps glyph (right) -->
+    <path d="M136 6 q0 -12 12 -12 q3 -10 14 -6 q10 -2 10 9 q8 0 8 9 H136 z" fill="#58a6ff" opacity="0.9"/>
+    <!-- lock badge -->
+    <g transform="translate(0,-92)">
+      <rect x="-26" y="-8" width="52" height="44" rx="10" fill="#161b22" stroke="#56d364" stroke-width="4"/>
+      <path d="M-12 -8 v-10 a12 12 0 0 1 24 0 v10" fill="none" stroke="#56d364" stroke-width="4"/>
+      <circle cx="0" cy="14" r="6" fill="#56d364"/>
+    </g>
+  </g>
+</svg>

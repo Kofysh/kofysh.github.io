@@ -4,6 +4,9 @@ date: 2026-05-22 21:00:00 +0200
 categories: [Tutoriels, Réseau]
 tags: [unifi, vlan, réseau, switch, wifi, firewall, ubiquiti, vpn, dhcp, proxmox]
 description: "Guide complet pour déployer un réseau maison/homelab professionnel avec du matériel Ubiquiti UniFi : gateway, switch, Wi-Fi, VLANs, firewall et VPN."
+image:
+  path: /assets/img/covers/unifi-vlan.svg
+pin: true
 ---
 
 ## Introduction
