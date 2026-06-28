@@ -4,6 +4,8 @@ date: 2026-05-22 22:00:00 +0200
 categories: [Tutoriels, Réseau]
 tags: [wireguard, vyos, vpn, réseau, vps, proxmox, subnet, ipv4, linux]
 description: "Router un subnet IPv4 complet chez soi via un tunnel WireGuard et un routeur VyOS sous Proxmox, pour assigner des IPs publiques à vos VMs sans installer WireGuard sur chacune."
+image:
+  path: /assets/img/covers/wireguard-vyos.svg
 ---
 
 > **Crédit :** Ce tutoriel est une adaptation de la documentation originale rédigée par [Azernet](https://blog.azernet.xyz/router-un-subnet-ipv4-chez-soi-avec-wireguard-vyos-2/). Merci à lui pour ce travail !

@@ -1,0 +1,47 @@
+---
+layout: page
+title: "404 — Page introuvable"
+permalink: /404.html
+---
+
+<div class="notfound">
+  <p class="notfound__code">404</p>
+  <p class="notfound__lead">Cette page n'existe pas… ou plus.</p>
+
+  <div class="term notfound__term" aria-hidden="true">
+    <div class="term__bar">
+      <span class="term__dot term__dot--red"></span>
+      <span class="term__dot term__dot--amber"></span>
+      <span class="term__dot term__dot--green"></span>
+      <span class="term__title">kofy@homelab:&nbsp;~</span>
+    </div>
+    <div class="term__body">
+      <div class="term__line">
+        <span class="term__prompt">kofy@homelab</span><span class="term__sep">:</span><span class="term__path">~</span><span class="term__sep">$</span>
+        <span class="term__cmd">cd <span id="nf-path">/page-introuvable</span></span>
+      </div>
+      <div class="term__out">bash: cd: <span id="nf-out">ressource introuvable</span> : No such file or directory</div>
+      <div class="term__line">
+        <span class="term__prompt">kofy@homelab</span><span class="term__sep">:</span><span class="term__path">~</span><span class="term__sep">$</span>
+        <span class="term__cursor">▋</span>
+      </div>
+    </div>
+  </div>
+
+  <a class="k-btn k-btn--primary notfound__btn" href="{{ '/' | relative_url }}">
+    <i class="fas fa-house fa-fw" aria-hidden="true"></i> Retour à l'accueil
+  </a>
+</div>
+
+<script>
+  // Affiche le vrai chemin demandé par le visiteur (GitHub Pages sert
+  // 404.html mais conserve l'URL d'origine dans la barre d'adresse).
+  (function () {
+    var p = window.location.pathname;
+    if (!p || p === '/404.html') return;
+    var path = document.getElementById('nf-path');
+    var out = document.getElementById('nf-out');
+    if (path) path.textContent = p;
+    if (out) out.textContent = p;
+  })();
+</script>
