@@ -1022,3 +1022,247 @@ footer[aria-label="Site Info"] {
   .home-hero__cta { width: 100%; }
   .home-hero__cta .k-btn { flex: 1; justify-content: center; }
 }
+
+/* ==================================================================
+   20. PAGE 404 (façon terminal)
+   ================================================================== */
+/* On masque le titre générique du layout page sur la 404. */
+article:has(.notfound) .dynamic-title { display: none; }
+
+.notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(1rem, 4vw, 3rem) 0;
+}
+
+.notfound__code {
+  margin: 0;
+  font-size: clamp(4.5rem, 16vw, 8.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  background: linear-gradient(115deg, var(--k-accent), var(--k-accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.notfound__lead {
+  margin: 0.4rem 0 1.6rem;
+  font-size: 1.1rem;
+  color: var(--text-muted-color);
+}
+
+.notfound__term {
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto 1.8rem;
+  text-align: left;
+}
+
+.notfound__term .term__body {
+  min-height: auto;
+  max-height: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .notfound__code { animation: fadeUp 0.6s var(--ease-out) both; }
+  .notfound__term { animation: fadeUp 0.6s var(--ease-out) 0.1s both; }
+}
+
+/* ==================================================================
+   21. CARTE « À LA UNE » (article épinglé)
+   Détectée via la présence de .pin (Chirpy) grâce à :has().
+   ================================================================== */
+.card-wrapper:has(.pin) {
+  border-color: var(--k-accent);
+  box-shadow: var(--k-shadow);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--k-accent) 7%, transparent), transparent 42%),
+    var(--card-bg);
+}
+
+/* La barre d'accent latérale reste affichée en permanence. */
+.card-wrapper:has(.pin)::before { transform: scaleY(1); }
+
+/* Titre plus présent. */
+.card-wrapper:has(.pin) .card-title { font-size: 1.45rem; }
+
+/* Ruban « à la une » en haut à droite (sur la cover). */
+.card-wrapper:has(.pin)::after {
+  content: "★ À la une";
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--k-on-accent);
+  background: linear-gradient(115deg, var(--k-accent), var(--k-accent-2));
+  box-shadow: 0 4px 12px var(--k-glow);
+}
+
+/* On masque le libellé d'épingle en ligne (redondant avec le ruban). */
+.card-wrapper:has(.pin) .pin { display: none; }
+
+@media (max-width: 768px) {
+  .card-wrapper:has(.pin) .card-title { font-size: 1.25rem; }
+}
+
+/* ==================================================================
+   22. PAGE À PROPOS — cartes de specs & grille de stack
+   ================================================================== */
+.about-lead {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--text-muted-color);
+  border-left: 3px solid var(--k-accent);
+  padding-left: 1rem;
+  margin: 0.2rem 0 2rem;
+}
+.about-lead strong { color: var(--heading-color); font-weight: 600; }
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 1.2rem;
+}
+
+.spec-card {
+  border: 1px solid var(--k-border);
+  border-radius: var(--r-md);
+  background: var(--card-bg);
+  padding: 1.1rem 1.2rem;
+  transition: transform var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
+    box-shadow var(--dur-2) var(--ease);
+}
+
+.spec-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--k-accent);
+  box-shadow: var(--k-shadow);
+}
+
+.spec-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--k-border);
+}
+
+.spec-card__icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: var(--r-sm);
+  color: var(--k-on-accent);
+  background: linear-gradient(115deg, var(--k-accent), var(--k-accent-2));
+  font-size: 1.1rem;
+}
+
+.spec-card__title { margin: 0; font-size: 1rem; line-height: 1.2; }
+
+.spec-card__role {
+  margin: 0.15rem 0 0;
+  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  color: var(--k-accent);
+}
+
+.spec-list { list-style: none; margin: 0; padding: 0; }
+
+.spec-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.34rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px dashed var(--k-border);
+}
+
+.spec-list li:last-child { border-bottom: 0; }
+.spec-list span { color: var(--text-muted-color); }
+.spec-list strong { font-weight: 600; text-align: right; }
+
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.7rem;
+  margin: 1.3rem 0;
+}
+
+.stack-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--k-border);
+  border-radius: var(--r-sm);
+  background: var(--k-surface-2);
+  transition: border-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+
+.stack-item:hover { border-color: var(--k-accent-2); transform: translateX(2px); }
+
+.stack-item > i {
+  font-size: 1.15rem;
+  color: var(--k-accent-2);
+  width: 1.4rem;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.stack-item span { display: flex; flex-direction: column; line-height: 1.25; }
+.stack-item strong { font-weight: 600; font-size: 0.9rem; }
+.stack-item em { font-style: normal; font-size: 0.74rem; color: var(--text-muted-color); }
+
+/* ==================================================================
+   23. EN-TÊTE & PIED D'ARTICLE
+   ================================================================== */
+/* Bannière de couverture en haut de l'article */
+.preview-img {
+  border-radius: var(--r-md);
+  border: 1px solid var(--k-border);
+  box-shadow: var(--k-shadow);
+  overflow: hidden;
+}
+
+/* Titre d'article plus présent (cible uniquement l'en-tête de post) */
+article > header > h1 {
+  font-size: clamp(1.85rem, 3.6vw, 2.6rem);
+  letter-spacing: -0.03em;
+  line-height: 1.14;
+  margin-bottom: 0.6rem;
+}
+
+article > header .post-desc {
+  font-size: 1.08rem;
+  line-height: 1.55;
+  color: var(--text-muted-color);
+}
+
+article > header .post-meta { font-size: 0.85rem; }
+
+/* Tags en pied d'article, mis en avant */
+.post-tail-wrapper .post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+}
+
+.post-tail-wrapper .post-tag {
+  font-size: 0.78rem;
+  padding: 4px 13px;
+}
