@@ -1,58 +1,86 @@
 ---
-title: "Avoir des IP publiques dédiées à la maison avec un tunnel WireGuard — à jour pour Debian 13"
+title: "Créer des IP publiques dédiées chez soi avec un tunnel WireGuard (Debian 13)"
 layout: post
 date: 2026-05-22 10:00:00 +0200
-last_modified_at: 2026-09-17 17:30:00 +0200
 categories: [Tutoriels, Réseau]
 tags: [WireGuard, VPN, Debian 13, IP failover, self-hosting, Proxmox, VPS, HostMyServers]
 image: /assets/img/covers/wireguard-failover.svg
-description: "Un VPS, un tunnel WireGuard, des IPv4 supplémentaires routées chez toi sans NAT — tutoriel adapté à Debian 13, avec les tarifs HostMyServers 2026 et les correctifs ARP."
+description: "Guide complet, pas à pas, pour router des adresses IPv4 publiques depuis un VPS jusqu'à votre réseau local via un tunnel WireGuard, sans NAT, sur Debian 13."
 permalink: /posts/wireguard-ip-failover-tunnel/
 ---
 
-Quand tu héberges chez toi (Proxmox, VMs, serveurs de jeux, Jellyfin…), ta box te limite : une seule IP, du NAT, parfois du CG-NAT qui rend l'entrée impossible. La solution que j'utilise : louer des IPv4 supplémentaires sur un VPS à quelques euros, et les **router** chez moi via un tunnel **WireGuard**, sans NAT, avec l'anti-DDoS du VPS en bonus. Article mis à jour pour **Debian 13 « Trixie »** et les tarifs 2026.
+## Le problème
 
-## Architecture
+Quand on héberge des services chez soi (serveurs de jeux, Proxmox, Jellyfin, sites web…), la connexion Internet fournie par une box grand public pose deux limites :
+
+- On ne dispose généralement que d'**une seule adresse IP publique**, partagée par tout le foyer.
+- Cette IP est souvent derrière du **NAT** (voire du **CG-NAT** chez certains opérateurs), ce qui rend impossible ou très limitée l'ouverture de ports depuis l'extérieur.
+
+## La solution
+
+L'idée est simple : louer des adresses IPv4 supplémentaires auprès d'un hébergeur de VPS, puis les **acheminer** (« router ») jusqu'à une machine chez soi via un tunnel chiffré **WireGuard**. Contrairement à une redirection de port classique, l'IP publique arrive directement sur la machine locale, sans passer par du NAT : tous les ports sont utilisables, dans les deux sens.
+
+En bonus, le trafic passe par l'infrastructure anti-DDoS du VPS avant d'arriver chez vous, ce qui protège votre connexion personnelle.
+
+Ce guide est rédigé pour **Debian 13 (« Trixie »)**, à la fois sur le VPS et sur la machine locale.
+
+## Prérequis
+
+Avant de commencer, assurez-vous d'avoir :
+
+- Un **VPS sous Debian 13**, avec un accès root (SSH).
+- Une **machine chez vous** (physique ou virtuelle), également sous Debian 13, connectée à votre réseau local.
+- Un **compte chez un hébergeur** permettant de commander des adresses IPv4 supplémentaires (ce guide utilise HostMyServers à titre d'exemple).
+- Des notions de base en ligne de commande Linux (édition de fichiers, gestion de services avec `systemctl`).
+
+## Vue d'ensemble de l'architecture
 
 ```text
 Internet
    │
-IP failover dédiée (ex. 163.5.121.254)
+IP publique dédiée (ex. 163.5.121.254)
    │
 ┌──┴───────────────┐
 │ VPS Debian 13    │  ← serveur WireGuard (IP principale : 146.19.168.213)
 │ wg0: 10.66.66.1  │
 └──┬───────────────┘
-   │ tunnel chiffré UDP
+   │ tunnel chiffré (UDP)
 ┌──┴───────────────┐
-│ Machine chez toi │  ← wg0 porte directement 163.5.121.254/32
+│ Machine chez vous│  ← l'interface wg0 porte directement 163.5.121.254/32
 └──────────────────┘
 ```
 
-L'IP publique est **routée**, pas NATée : chaque machine cliente a sa propre IP dédiée, joignable entrant comme sortant.
+Deux points importants à retenir :
 
-## Choix de l'hébergeur et budget
+- L'**IP principale du VPS** sert uniquement de point d'entrée pour le tunnel (l'« endpoint » WireGuard).
+- Les **IP supplémentaires** commandées auprès de l'hébergeur sont celles que l'on va router vers la machine locale ; chacune sera directement utilisable comme si elle était branchée sur cette machine.
 
-Je me base sur **HostMyServers** (infra française, anti-DDoS inclus). Depuis 2025-2026, les IP « one-shot à vie » n'existent plus : chaque VPS **inclut 6 IPv4** (frais d'activation uniques de 1,66 € HT pour celles-ci), puis **1,60 € TTC/mois par IPv4** au-delà. Ça reste bien moins cher qu'OVH (≈2,87 €/mois) ou Hetzner (1,70 €/mois + setup).
+## Étape 1 — Commander les adresses IPv4 supplémentaires
 
-> ℹ️ Note à jour : tu n'as plus besoin d'anticiper des années de consommation — les IP au-delà de 6 sont réversibles d'un mois sur l'autre.
+Rendez-vous dans l'espace client de votre hébergeur, puis dans la section **Configuration → Commander des IP supplémentaires**.
 
-Depuis l'espace client → **Configuration** → **Commander IP Supplémentaires**. Note bien dans un coin :
-- L'**IP principale du VPS** = celle avec le reverse DNS → endpoint du tunnel ;
-- Les **IP supplémentaires** = celles que tu vas router chez toi.
+À titre d'exemple, chez HostMyServers, chaque VPS inclut 6 IPv4 (frais d'activation unique d'environ 1,66 € HT par IP), puis environ 1,60 € TTC/mois par IPv4 additionnelle — un tarif nettement inférieur à celui d'OVH (≈2,87 €/mois) ou Hetzner (≈1,70 €/mois, avec frais de mise en service).
 
-## Préparation du VPS
+Notez précieusement deux informations pour la suite :
 
-⚠️ Ancienne étape supprimée : le script `preparevps.sh` servait à virer **netplan** des images Ubuntu. Une image **Debian 13 native n'a pas de netplan** — tu peux sauter cette étape complètement.
+- L'**IP principale** du VPS (avec son reverse DNS) : ce sera l'adresse à laquelle le tunnel WireGuard se connectera.
+- Les **IP supplémentaires** que vous venez de commander : ce sont elles qui seront routées vers votre machine.
 
-Vérifie juste le nom de ton interface publique :
+## Étape 2 — Vérifier l'interface réseau du VPS
+
+Avant toute manipulation, identifiez le nom exact de l'interface réseau publique du VPS (elle est utilisée dans plusieurs commandes plus bas) :
 
 ```bash
 ip -br a
-# Chez HMS c'est souvent eth0, mais ça peut être ens3 / enp1s0
 ```
 
-## Installation de WireGuard
+Chez la plupart des hébergeurs, cette interface s'appelle `eth0`, mais elle peut aussi porter un nom comme `ens3` ou `enp1s0` selon la virtualisation utilisée. Remplacez `eth0` par le nom réel dans toutes les commandes de ce guide.
+
+Sur une image Debian 13 « propre » (fournie nativement par l'hébergeur), aucune configuration réseau préalable n'est nécessaire : l'interface est prête à l'emploi.
+
+## Étape 3 — Installer WireGuard sur le VPS
+
+Connectez-vous en SSH au VPS, puis mettez le système à jour et installez les paquets nécessaires :
 
 ```bash
 apt update
@@ -62,9 +90,11 @@ apt autoremove -y
 reboot
 ```
 
-> Sur Debian 13, `iptables` pointe vers `iptables-nft`. Les commandes ci-dessous fonctionnent **telles quelles**.
+> Sur Debian 13, la commande `iptables` s'appuie sur le moteur `iptables-nft`. Cela ne change rien à la syntaxe des commandes utilisées dans ce guide, elles fonctionnent telles quelles.
 
-Déployons le serveur avec le script **angristan** (compatible Debian 13) :
+## Étape 4 — Déployer le serveur WireGuard
+
+Le script d'installation communautaire **angristan/wireguard-install** automatise la création du serveur WireGuard et reste compatible avec Debian 13 :
 
 ```bash
 curl -O https://raw.githubusercontent.com/angristan/wireguard-install/master/wireguard-install.sh
@@ -72,18 +102,29 @@ chmod +x wireguard-install.sh
 bash wireguard-install.sh
 ```
 
-Laisse les paramètres par défaut (adapte l'interface publique si besoin) et crée un premier client quand proposé — un fichier `wg0-client-MaVM.conf` sera généré.
+Pendant l'installation :
 
-## Ajustement de la config serveur (une seule fois)
+1. Conservez les valeurs par défaut proposées, sauf pour l'interface publique si celle-ci diffère de `eth0` (voir étape 2).
+2. Lorsque le script propose de créer un premier client, acceptez : il générera un fichier `wg0-client-MaVM.conf`, qui servira de base pour la machine locale.
 
-Ouvre `/etc/wireguard/wg0.conf` et remplace le bloc `PostUp`/`PostDown` généré par celui-ci (adapte `eth0` à ton interface) :
+## Étape 5 — Adapter la configuration du serveur
+
+Le script génère par défaut des règles `PostUp`/`PostDown` pensées pour du NAT. Ici, on souhaite du **routage direct**, il faut donc les remplacer.
+
+Ouvrez le fichier de configuration :
+
+```bash
+nano /etc/wireguard/wg0.conf
+```
+
+Remplacez le bloc `PostUp`/`PostDown` existant par celui-ci (pensez à adapter `eth0` si votre interface a un autre nom) :
 
 ```ini
 PostUp = iptables -I FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -I FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -I INPUT -p udp -s 10.66.66.0/24 -j ACCEPT; ip6tables -I FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i eth0 -o wg0 -s 10.66.66.0/24 -j ACCEPT; iptables -D FORWARD -i wg0 -d 10.66.66.0/24 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -s 10.66.66.0/24 -j MASQUERADE; iptables -D INPUT -p udp -s 10.66.66.0/24 -j ACCEPT; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
 ```
 
-Active forwarding + proxy ARP :
+Activez ensuite le routage IP et le **proxy ARP** (indispensable pour que le VPS réponde aux requêtes ARP concernant les IP qu'il route vers vos machines) :
 
 ```bash
 cat >> /etc/sysctl.conf <<'EOF'
@@ -95,9 +136,9 @@ EOF
 reboot
 ```
 
-## Associer l'IPv4 supplémentaire au client
+## Étape 6 — Associer une IP publique à un client
 
-Dans `/etc/wireguard/wg0.conf`, bloc `[Peer]` du client, ajoute l'IP publique dans `AllowedIPs` :
+Dans `/etc/wireguard/wg0.conf`, repérez le bloc `[Peer]` correspondant à votre client, et ajoutez l'IP publique que vous souhaitez lui attribuer dans le champ `AllowedIPs` :
 
 ```ini
 ### Client MaVM
@@ -107,17 +148,19 @@ PresharedKey = t+rgwqN3j8LccHtgi7GULlwBrf8ghY8HAbZN6cagP8s=
 AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128,163.5.121.254/32
 ```
 
+Appliquez le changement et vérifiez que le tunnel est actif :
+
 ```bash
 systemctl restart wg-quick@wg0
 wg show
 ```
 
-## Modifier le profil client
+## Étape 7 — Configurer la machine locale
 
-Dans `wg0-client-MaVM.conf` :
+Reprenez le fichier `wg0-client-MaVM.conf` généré à l'étape 4, et apportez deux modifications :
 
-1. Remplace l'adresse interne par **ton IP publique** dans `Address` ;
-2. Ajoute la règle MTU.
+1. Remplacez l'adresse IP interne par **votre IP publique** dans le champ `Address`.
+2. Ajoutez une règle de correction MTU (`PostUp`), pour éviter des problèmes de fragmentation sur certaines connexions.
 
 ```ini
 [Interface]
@@ -133,23 +176,27 @@ Endpoint = 146.19.168.213:62052
 AllowedIPs = 0.0.0.0/0,::/0
 ```
 
-## Déployer sur la machine cliente
-
-Sur la machine chez toi (Debian 13 aussi) :
+Installez WireGuard et déployez cette configuration sur la machine locale (elle aussi sous Debian 13) :
 
 ```bash
 apt install wireguard-tools resolvconf iptables -y
-nano /etc/wireguard/wg0.conf   # colle le contenu du profil modifié
+nano /etc/wireguard/wg0.conf   # collez le contenu du profil modifié ci-dessus
 systemctl enable wg-quick@wg0 --now
-
-ip a             # wg0 doit porter l'IP publique
-curl ifconfig.me # doit renvoyer 163.5.121.254
-wg show          # handshake récent ?
 ```
 
-## Diagnostics : le correctif ARP
+Vérifiez que tout fonctionne correctement :
 
-Si l'IP publique ne répond pas depuis Internet, le routeur de l'hébergeur a « oublié » ton VPS. On garde le lien chaud avec `arping` en boucle (⚠️ adapte `eth0`) :
+```bash
+ip a             # l'interface wg0 doit porter l'IP publique
+curl ifconfig.me # doit renvoyer 163.5.121.254
+wg show          # un handshake récent doit apparaître
+```
+
+## Étape 8 — Corriger les éventuels problèmes ARP
+
+Si l'IP publique reste injoignable depuis Internet malgré une configuration correcte, c'est généralement que le routeur de l'hébergeur n'a pas encore mis à jour sa table ARP pour associer cette IP au VPS. La solution consiste à maintenir cette association active avec des requêtes `arping` périodiques.
+
+Créez la liste des IP à surveiller :
 
 ```bash
 sudo nano /root/ips
@@ -158,6 +205,8 @@ sudo nano /root/ips
 163.5.121.254
 163.5.121.253
 ```
+
+Créez le script qui envoie les requêtes ARP en boucle (adaptez `eth0` si nécessaire) :
 
 ```bash
 sudo nano /usr/local/bin/arping-loop.sh
@@ -172,6 +221,8 @@ sleep 1
 wait
 done
 ```
+
+Rendez le script exécutable, puis transformez-le en service systemd pour qu'il démarre automatiquement :
 
 ```bash
 chmod +x /usr/local/bin/arping-loop.sh
@@ -192,16 +243,21 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
+Activez et démarrez le service :
+
 ```bash
 systemctl daemon-reload
 systemctl enable --now arping-loop
 ```
 
-Avec `proxy_arp=1`, ce service est théoriquement facultatif, mais je le garde : il évite les coupures après reboot ou changement réseau chez HMS.
+Avec `proxy_arp` activé (étape 5), ce service est théoriquement facultatif — mais il est recommandé de le conserver, car il évite des coupures après un redémarrage ou un changement réseau côté hébergeur.
 
-## Plusieurs clients = plusieurs IP
+## Étape 9 — Gérer plusieurs machines et plusieurs IP
 
-Règle d'or : **1 IP publique = 1 peer**. Rejoue le script angristan pour créer un nouveau client, puis une entrée par IPv4 :
+La règle à retenir est simple : **une IP publique correspond à un client (« peer ») WireGuard**. Pour ajouter une nouvelle machine :
+
+1. Relancez le script `wireguard-install.sh` sur le VPS pour créer un nouveau client.
+2. Ajoutez une entrée `[Peer]` par IPv4 supplémentaire dans `/etc/wireguard/wg0.conf` :
 
 ```ini
 ### Client MaVM
@@ -215,23 +271,26 @@ AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128,163.5.121.254/32
 AllowedIPs = 10.66.66.3/32,fd42:42:42::3/128,163.5.121.253/32
 ```
 
-## Remarques IPv6
+## Aller plus loin avec IPv6
 
-Le `fd42:42:42::/64` du tunnel est une plage **ULA privée** : parfait pour l'interne du tunnel, mais ce n'est pas une IPv6 publique. Pour du vrai IPv6 chez toi : demande un /64 routé à ton hébergeur, assigne des /128 dans `Address`/`AllowedIPs`, et surtout **pas de NAT** — c'est routé nativement.
+La plage `fd42:42:42::/64` utilisée à l'intérieur du tunnel est une plage **ULA privée** (usage interne uniquement, non routable sur Internet). Pour disposer d'une véritable IPv6 publique chez vous :
 
-## Ce qui a changé dans cette mise à jour
+- Demandez à votre hébergeur un préfixe **/64 routé**.
+- Assignez des adresses **/128** issues de ce préfixe dans les champs `Address` et `AllowedIPs`.
+- Comme pour l'IPv4, tout se fait en **routage direct, sans NAT**.
 
-| Élément | Ancienne version | Version 2026 (Debian 13) |
-|---|---|---|
-| OS du VPS | Debian 12 | Debian 13 « Trixie » ✔ |
-| Tarif IP HMS | ~2 € à vie | 6 incluses + 1,60 € TTC/mois au-delà |
-| Étage `preparevps.sh` (netplan) | Obligatoire | Supprimé (image Debian 13 pure) |
-| Interface | `eth0` | Vérifier avec `ip -br a` |
-| `iptables` | iptables classique | `iptables-nft`, mêmes commandes |
-| Service `arping-loop` | ✔ | ✔ Inchangé |
+## Dépannage
+
+Si une IP publique ne répond pas comme attendu, procédez dans cet ordre :
+
+1. `wg show` — le tunnel affiche-t-il un handshake récent avec le bon peer ?
+2. `ip route get <ip_publique>` — la route vers cette IP est-elle correcte côté VPS et côté machine locale ?
+3. `tcpdump -ni eth0 host <ip_publique>` (sur le VPS) — le trafic arrive-t-il seulement jusqu'à l'interface publique du VPS ?
+
+Si le trafic n'atteint même pas l'interface du VPS à cette dernière étape, le problème se situe côté hébergeur (routage réseau) plutôt que dans votre configuration.
 
 ## Conclusion
 
-Le principe n'a pas bougé : un VPS + WireGuard = des IP publiques dédiées sur tes machines à la maison, sans NAT, sans limite de ports. La version Debian 13 est même plus simple qu'avant (une étape de préparation en moins). Si tu bloques, ordre de check : `wg show` → `ip route get <ip_failover>` → `tcpdump -ni eth0 host <ip_failover>`. Si rien n'arrive jusqu'à l'interface, c'est un sujet chez l'hébergeur, pas chez toi.
+Le principe reste simple malgré le nombre d'étapes : un VPS et un tunnel WireGuard permettent d'obtenir de véritables IP publiques dédiées sur vos machines à la maison, sans NAT et sans limitation de ports. Sur Debian 13, la mise en place est directe, sans étape de préparation réseau supplémentaire — suivez les étapes dans l'ordre et vérifiez chaque point avec les commandes de contrôle indiquées.
 
 Bon déploiement ! 🚀
