@@ -55,7 +55,7 @@ Deux points importants à retenir :
 - L'**IP principale du VPS** sert uniquement de point d'entrée pour le tunnel (l'« endpoint » WireGuard).
 - Les **IP supplémentaires** commandées auprès de l'hébergeur sont celles que l'on va router vers la machine locale ; chacune sera directement utilisable comme si elle était branchée sur cette machine.
 
-## Étape 1 - Commander les adresses IPv4 supplémentaires
+## Étape 1 — Commander les adresses IPv4 supplémentaires
 
 Rendez-vous dans l'espace client de votre hébergeur, puis dans la section **Configuration → Commander des IP supplémentaires**.
 
@@ -66,7 +66,7 @@ Notez précieusement deux informations pour la suite :
 - L'**IP principale** du VPS (avec son reverse DNS) : ce sera l'adresse à laquelle le tunnel WireGuard se connectera.
 - Les **IP supplémentaires** que vous venez de commander : ce sont elles qui seront routées vers votre machine.
 
-## Étape 2 - Vérifier l'interface réseau du VPS
+## Étape 2 — Vérifier l'interface réseau du VPS
 
 Avant toute manipulation, identifiez le nom exact de l'interface réseau publique du VPS (elle est utilisée dans plusieurs commandes plus bas) :
 
@@ -78,7 +78,7 @@ Chez la plupart des hébergeurs, cette interface s'appelle `eth0`, mais elle peu
 
 Sur une image Debian 13 « propre » (fournie nativement par l'hébergeur), aucune configuration réseau préalable n'est nécessaire : l'interface est prête à l'emploi.
 
-## Étape 3 - Installer WireGuard sur le VPS
+## Étape 3 — Installer WireGuard sur le VPS
 
 Connectez-vous en SSH au VPS, puis mettez le système à jour et installez les paquets nécessaires :
 
@@ -92,7 +92,7 @@ reboot
 
 > Sur Debian 13, la commande `iptables` s'appuie sur le moteur `iptables-nft`. Cela ne change rien à la syntaxe des commandes utilisées dans ce guide, elles fonctionnent telles quelles.
 
-## Étape 4 - Déployer le serveur WireGuard
+## Étape 4 — Déployer le serveur WireGuard
 
 Le script d'installation communautaire **angristan/wireguard-install** automatise la création du serveur WireGuard et reste compatible avec Debian 13 :
 
@@ -136,7 +136,7 @@ EOF
 reboot
 ```
 
-## Étape 6 - Associer une IP publique à un client
+## Étape 6 — Associer une IP publique à un client
 
 Dans `/etc/wireguard/wg0.conf`, repérez le bloc `[Peer]` correspondant à votre client, et ajoutez l'IP publique que vous souhaitez lui attribuer dans le champ `AllowedIPs` :
 
@@ -155,11 +155,11 @@ systemctl restart wg-quick@wg0
 wg show
 ```
 
-## Étape 7 - Configurer la machine locale
+## Étape 7 — Configurer la machine locale
 
 Reprenez le fichier `wg0-client-MaVM.conf` généré à l'étape 4, et apportez deux modifications :
 
-1. Remplacez l'adresse IP interne par **votre IP publique** dans le champ `Address`.
+1. Remplacez l'adresse interne par **votre IP publique** dans le champ `Address`.
 2. Ajoutez une règle de correction MTU (`PostUp`), pour éviter des problèmes de fragmentation sur certaines connexions.
 
 ```ini
@@ -192,7 +192,7 @@ curl ifconfig.me # doit renvoyer 163.5.121.254
 wg show          # un handshake récent doit apparaître
 ```
 
-## Étape 8 - Corriger les éventuels problèmes ARP
+## Étape 8 — Corriger les éventuels problèmes ARP
 
 Si l'IP publique reste injoignable depuis Internet malgré une configuration correcte, c'est généralement que le routeur de l'hébergeur n'a pas encore mis à jour sa table ARP pour associer cette IP au VPS. La solution consiste à maintenir cette association active avec des requêtes `arping` périodiques.
 
@@ -271,13 +271,109 @@ AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128,163.5.121.254/32
 AllowedIPs = 10.66.66.3/32,fd42:42:42::3/128,163.5.121.253/32
 ```
 
-## Aller plus loin avec IPv6
+## Étape 10 — Sécuriser l'accès avec un pare-feu UFW
 
-La plage `fd42:42:42::/64` utilisée à l'intérieur du tunnel est une plage **ULA privée** (usage interne uniquement, non routable sur Internet). Pour disposer d'une véritable IPv6 publique chez vous :
+Le tunnel WireGuard livre vos IP publiques directement sur les machines locales, sans NAT : il n'y a donc plus la protection implicite d'une box qui bloque tout par défaut. Un pare-feu explicite est indispensable, aussi bien sur le VPS que sur chaque machine cliente.
 
-- Demandez à votre hébergeur un préfixe **/64 routé**.
-- Assignez des adresses **/128** issues de ce préfixe dans les champs `Address` et `AllowedIPs`.
-- Comme pour l'IPv4, tout se fait en **routage direct, sans NAT**.
+**Sur le VPS**, installez et configurez UFW :
+
+```bash
+apt install ufw -y
+
+# Autoriser SSH avant d'activer le pare-feu, pour ne pas se couper l'accès
+ufw allow OpenSSH
+
+# Autoriser le port UDP utilisé par WireGuard (remplacez 62052 par votre port réel)
+ufw allow 62052/udp
+```
+
+Comme le VPS doit **router** du trafic entre son interface publique et l'interface `wg0` (et non plus seulement en recevoir), la politique de forward par défaut doit être ajustée :
+
+```bash
+nano /etc/default/ufw
+```
+
+Changez la ligne suivante :
+
+```text
+DEFAULT_FORWARD_POLICY="ACCEPT"
+```
+
+Activez ensuite le pare-feu :
+
+```bash
+ufw enable
+ufw status verbose
+```
+
+> Les règles `PostUp`/`PostDown` du fichier `wg0.conf` (étape 5) restent nécessaires : elles gèrent le routage et le NAT sortant, tandis qu'UFW filtre les connexions entrantes/sortantes de plus haut niveau. Les deux mécanismes coexistent sans conflit.
+
+**Sur chaque machine cliente**, l'IP publique arrivant directement sur `wg0`, chaque port ouvert l'est réellement sur Internet. Adoptez une politique restrictive par défaut, puis n'ouvrez que ce qui est nécessaire :
+
+```bash
+apt install ufw -y
+
+ufw default deny incoming
+ufw default allow outgoing
+
+# Exemple : ouvrir un serveur web
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# Exemple : ouvrir un serveur de jeu (Minecraft)
+ufw allow 25565/tcp
+
+ufw enable
+ufw status verbose
+```
+
+Pensez à toujours conserver un accès SSH autorisé (`ufw allow OpenSSH` ou le port personnalisé utilisé) avant d'activer le pare-feu sur une machine distante, pour ne pas vous retrouver bloqué à l'extérieur.
+
+## Étape 11 — Router un bloc IPv6 public
+
+La plage `fd42:42:42::/64` utilisée à l'intérieur du tunnel (étapes précédentes) est une plage **ULA privée** : parfaite pour l'interne du tunnel, mais non routable sur Internet. Pour obtenir une véritable connectivité IPv6 publique chez vous, il faut qu'un bloc IPv6 **routé** soit délégué au VPS, puis re-délégué à travers le tunnel jusqu'à vos machines.
+
+**Demander le bloc à l'hébergeur.** Depuis l'espace client, demandez un préfixe routé (généralement un `/64`, parfois un `/56` si vous devez le sous-découper pour plusieurs machines), à faire pointer vers l'IP principale du VPS. L'hébergeur se charge alors de router ce préfixe jusqu'à votre VPS.
+
+**Attribuer une adresse du bloc à un client.** Dans `/etc/wireguard/wg0.conf`, ajoutez l'adresse IPv6 souhaitée (issue du bloc obtenu) dans le champ `AllowedIPs` du peer concerné :
+
+```ini
+### Client MaVM
+[Peer]
+PublicKey = VApiknwvlZmUewjbwZGFYp/77M3XUOSVde8AGcAdgzg=
+PresharedKey = t+rgwqN3j8LccHtgi7GULlwBrf8ghY8HAbZN6cagP8s=
+AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128,163.5.121.254/32,2001:db8:abcd::10/128
+```
+
+Remplacez `2001:db8:abcd::10` par une adresse issue de votre bloc réel.
+
+**Configurer le client.** Sur la machine locale, ajoutez cette même adresse dans le champ `Address` du fichier client :
+
+```ini
+[Interface]
+PrivateKey = MM2OFVfYrJFtdAgebfPJL2hDtjaslufqoJ1yzvdN+X8=
+Address = 163.5.121.254/32,fd42:42:42::2/128,2001:db8:abcd::10/128
+DNS = 1.1.1.1,1.0.0.1
+PostUp = iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o wg0 -j TCPMSS --clamp-mss-to-pmtu
+```
+
+**Corriger le routage IPv6 côté VPS.** Puisque le bloc est déjà **routé** par l'hébergeur (et non partagé), le NAT66 n'est pas nécessaire ici. Dans les règles `PostUp`/`PostDown` du VPS (étape 5), remplacez la ligne de masquerade IPv6 par un simple forward :
+
+```ini
+PostUp = ... ; ip6tables -I FORWARD -i wg0 -j ACCEPT
+PostDown = ... ; ip6tables -D FORWARD -i wg0 -j ACCEPT
+```
+
+(Retirez la ligne `ip6tables -t nat ... MASQUERADE` : elle masquerait vos adresses IPv6 publiques derrière celle du VPS, ce qui annulerait l'intérêt d'avoir un bloc routé.)
+
+**Vérifier.** Depuis la machine locale :
+
+```bash
+ip -6 a              # l'adresse du bloc doit apparaître sur wg0
+curl -6 ifconfig.me  # doit renvoyer votre adresse IPv6 publique
+```
+
+Chaque nouvelle machine qui a besoin d'IPv6 public reçoit ainsi sa propre adresse au sein du même bloc, exactement selon le même principe que pour l'IPv4 (une IP = un peer).
 
 ## Dépannage
 
