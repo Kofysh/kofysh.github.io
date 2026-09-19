@@ -1,5 +1,5 @@
 ---
-title: "Créer des IP publiques dédiées chez soi avec un tunnel WireGuard (Debian 13)"
+title: "Avoir des adresses IPv4/IPv6 chez soi avec un tunnel Wireguard"
 layout: post
 date: 2026-05-22 10:00:00 +0200
 categories: [Tutoriels, Réseau]
@@ -55,7 +55,7 @@ Deux points importants à retenir :
 - L'**IP principale du VPS** sert uniquement de point d'entrée pour le tunnel (l'« endpoint » WireGuard).
 - Les **IP supplémentaires** commandées auprès de l'hébergeur sont celles que l'on va router vers la machine locale ; chacune sera directement utilisable comme si elle était branchée sur cette machine.
 
-## Étape 1 — Commander les adresses IPv4 supplémentaires
+## Étape 1 - Commander les adresses IPv4 supplémentaires
 
 Rendez-vous dans l'espace client de votre hébergeur, puis dans la section **Configuration → Commander des IP supplémentaires**.
 
@@ -66,7 +66,7 @@ Notez précieusement deux informations pour la suite :
 - L'**IP principale** du VPS (avec son reverse DNS) : ce sera l'adresse à laquelle le tunnel WireGuard se connectera.
 - Les **IP supplémentaires** que vous venez de commander : ce sont elles qui seront routées vers votre machine.
 
-## Étape 2 — Vérifier l'interface réseau du VPS
+## Étape 2 - Vérifier l'interface réseau du VPS
 
 Avant toute manipulation, identifiez le nom exact de l'interface réseau publique du VPS (elle est utilisée dans plusieurs commandes plus bas) :
 
@@ -78,7 +78,7 @@ Chez la plupart des hébergeurs, cette interface s'appelle `eth0`, mais elle peu
 
 Sur une image Debian 13 « propre » (fournie nativement par l'hébergeur), aucune configuration réseau préalable n'est nécessaire : l'interface est prête à l'emploi.
 
-## Étape 3 — Installer WireGuard sur le VPS
+## Étape 3 - Installer WireGuard sur le VPS
 
 Connectez-vous en SSH au VPS, puis mettez le système à jour et installez les paquets nécessaires :
 
@@ -92,7 +92,7 @@ reboot
 
 > Sur Debian 13, la commande `iptables` s'appuie sur le moteur `iptables-nft`. Cela ne change rien à la syntaxe des commandes utilisées dans ce guide, elles fonctionnent telles quelles.
 
-## Étape 4 — Déployer le serveur WireGuard
+## Étape 4 - Déployer le serveur WireGuard
 
 Le script d'installation communautaire **angristan/wireguard-install** automatise la création du serveur WireGuard et reste compatible avec Debian 13 :
 
@@ -136,7 +136,7 @@ EOF
 reboot
 ```
 
-## Étape 6 — Associer une IP publique à un client
+## Étape 6 - Associer une IP publique à un client
 
 Dans `/etc/wireguard/wg0.conf`, repérez le bloc `[Peer]` correspondant à votre client, et ajoutez l'IP publique que vous souhaitez lui attribuer dans le champ `AllowedIPs` :
 
@@ -155,7 +155,7 @@ systemctl restart wg-quick@wg0
 wg show
 ```
 
-## Étape 7 — Configurer la machine locale
+## Étape 7 - Configurer la machine locale
 
 Reprenez le fichier `wg0-client-MaVM.conf` généré à l'étape 4, et apportez deux modifications :
 
@@ -192,7 +192,7 @@ curl ifconfig.me # doit renvoyer 163.5.121.254
 wg show          # un handshake récent doit apparaître
 ```
 
-## Étape 8 — Corriger les éventuels problèmes ARP
+## Étape 8 - Corriger les éventuels problèmes ARP
 
 Si l'IP publique reste injoignable depuis Internet malgré une configuration correcte, c'est généralement que le routeur de l'hébergeur n'a pas encore mis à jour sa table ARP pour associer cette IP au VPS. La solution consiste à maintenir cette association active avec des requêtes `arping` périodiques.
 
