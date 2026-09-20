@@ -2,6 +2,7 @@
 title: "Anubis en standalone derrière Cloudflared, sans Docker"
 layout: post
 date: 2026-09-19 21:00:00 +0200
+last_modified_at: 2026-09-20 09:45:00 +0200
 categories: [Tutoriels, Cybersécurité, Self-hosting]
 tags: [Anubis, Cloudflare Tunnel, cloudflared, anti-bot, Debian 13, systemd, self-hosting]
 image: /assets/img/covers/anubis-cloudflared.svg
