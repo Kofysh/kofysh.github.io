@@ -2,8 +2,8 @@
 
 source "https://rubygems.org"
 
-gem "jekyll-theme-chirpy", "~> 7.1", ">= 7.1.1"
-gem "jekyll-archives", "~> 2.2"
+gem "jekyll-theme-chirpy", "~> 7.6"
+gem "jekyll-archives", "~> 2.3"
 gem "jekyll-redirect-from", "~> 0.16"
 gem "jekyll-compose", "~> 0.12", group: :development
 gem "jekyll-sitemap", "~> 1.4"
