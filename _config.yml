@@ -1,14 +1,11 @@
-# Configuration existante conservée.
-# Ajouter uniquement :
-plugins:
-  - jekyll-archives
-  - jekyll-redirect-from
-  - jekyll-responsive-image
-  - jekyll-sitemap
+# Configuration PWA — ajout à la configuration existante
+pwa:
+  enabled: true
+  cache:
+    enabled: true
+    deny_paths:
+      - "/posts/"
+      - "/categories/"
+      - "/tags/"
 
-responsive_image:
-  template: _includes/responsive-image.html
-  sizes:
-    - width: 480
-    - width: 768
-    - width: 1200
+pwa_cache_version: "2026-09-27"
