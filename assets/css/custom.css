@@ -3,3 +3,16 @@
  * control all styling.
  * Ajoute des styles ici uniquement si c’est absolument nécessaire.
  */
+
+/* Les miniatures Chirpy utilisent object-fit: cover sur desktop.
+ * Les couvertures du blog restent entières, sans recadrage latéral. */
+@media (min-width: 768px) {
+  #post-list .card .preview-img {
+    background-color: #0d1117;
+  }
+
+  #post-list .card .preview-img img {
+    object-fit: contain;
+    object-position: center;
+  }
+}
