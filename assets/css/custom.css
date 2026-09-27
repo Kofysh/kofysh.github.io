@@ -1,13 +1,17 @@
 /* Custom CSS overrides disabled. */
 
 @media (min-width: 768px) {
-  #post-list .card .preview-img {
+  .preview-img {
     background-color: #0d1117;
+    overflow: hidden;
   }
 
-  #post-list .card .preview-img img {
-    object-fit: cover;
-    object-position: center;
+  .preview-img,
+  .preview-img img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
   }
 }
 
