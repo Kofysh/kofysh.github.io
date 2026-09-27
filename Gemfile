@@ -6,6 +6,8 @@ gem "jekyll-theme-chirpy", "~> 7.1", ">= 7.1.1"
 gem "jekyll-archives", "~> 2.2"
 gem "jekyll-redirect-from", "~> 0.16"
 gem "jekyll-compose", "~> 0.12", group: :development
+gem "jekyll-responsive-image", "~> 1.0"
+gem "jekyll-sitemap", "~> 1.4"
 
 gem "html-proofer", "~> 5.0", group: :test
 

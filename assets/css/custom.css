@@ -1,11 +1,5 @@
-/* Custom CSS overrides disabled.
- * This file is intentionally minimal to let the base Chirpy theme
- * control all styling.
- * Ajoute des styles ici uniquement si c’est absolument nécessaire.
- */
+/* Custom CSS overrides disabled. */
 
-/* Les miniatures Chirpy utilisent object-fit: cover sur desktop.
- * Les couvertures du blog restent entières, sans recadrage latéral. */
 @media (min-width: 768px) {
   #post-list .card .preview-img {
     background-color: #0d1117;
@@ -15,4 +9,9 @@
     object-fit: contain;
     object-position: center;
   }
+}
+
+.post-content img {
+  height: auto;
+  max-width: 100%;
 }

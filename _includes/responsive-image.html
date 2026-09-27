@@ -1,0 +1,6 @@
+<picture>
+  {% for source in responsive_image.sources %}
+  <source srcset="{{ source.path | relative_url }}" media="(max-width: {{ source.width }}px)">
+  {% endfor %}
+  <img src="{{ responsive_image.original.path | relative_url }}" alt="{{ include.alt | escape }}" loading="lazy" decoding="async">
+</picture>
