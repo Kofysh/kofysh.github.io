@@ -6,7 +6,7 @@
   }
 
   #post-list .card .preview-img img {
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
   }
 }
