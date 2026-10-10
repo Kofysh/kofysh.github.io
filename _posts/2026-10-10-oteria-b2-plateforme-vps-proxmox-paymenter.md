@@ -1,45 +1,70 @@
 ---
-title: Plateforme VPS sécurisée et automatisée avec Paymenter et Proxmox VE
+title: Déployer une plateforme VPS avec Paymenter et Proxmox VE
 date: 2026-10-10 18:48:00 +0200
 categories: [Cybersécurité, Homelab]
-tags: [OTERIA, Proxmox, Paymenter, VPS, Debian 13, NGINX, Linux, cybersécurité]
+tags: [OTERIA, Proxmox, Paymenter, VPS, Debian 13, NGINX, Linux, cloud-init]
 description: >-
-  Projet individuel de Bachelor 2 OTERIA : documentation détaillée et commandes de référence
-  pour déployer Paymenter sur Debian 13 et l'intégrer à Proxmox VE.
+  Guide de déploiement pas à pas du projet B2 OTERIA : portail Paymenter sur Debian 13,
+  intégration Proxmox VE, templates cloud-init, sécurité et recette.
 ---
 
-> **Périmètre de ce guide.** Les commandes d'installation de Paymenter et de gestion des utilisateurs/tokens Proxmox ci-dessous suivent leur documentation officielle consultée pour cet article. Les paramètres réseau, domaines, certificats, stockage, bridges et privilèges précis restent propres à chaque installation. Vérifie-les avant exécution. Le dossier technique indique plusieurs tests comme non testés : aucune commande de cette page ne constitue une preuve que le déploiement a été effectué.
+# Déployer une plateforme VPS avec Paymenter et Proxmox VE
 
-## Présentation
+Ce guide documente le projet individuel de Bachelor 2 cybersécurité à OTERIA : un portail Paymenter qui reçoit des commandes de VPS et une infrastructure Proxmox VE destinée à héberger les machines virtuelles. Il décrit l'installation du portail, la préparation de Proxmox, la création d'un template cloud-init, les contrôles de sécurité et la recette.
 
-Projet individuel de Bachelor 2 cybersécurité à OTERIA : concevoir une plateforme de vente de VPS automatisée. Le client commande et paie sur Paymenter ; après validation du paiement côté serveur, une VM QEMU/KVM est provisionnée sur Proxmox VE.
+Le guide est écrit pour être repris par un autre administrateur. Les commandes d'installation suivent la documentation officielle de Paymenter et Proxmox consultée le 10 octobre 2026. Les valeurs qui dépendent du site (nom DNS, IP, interface réseau, stockage, VMID, certificats et clés) sont déclarées au début et doivent être remplacées par des valeurs existantes dans l'environnement cible. Aucun mot de passe ni token réel n'est inclus.
 
-Pile de référence : Debian 13, NGINX, PHP-FPM, MariaDB, Redis, Paymenter v1.5.9 et Proxmox VE. Le portail est installé sans Docker. Les VPS sont des VM, avec templates cloud-init, réseau client distinct, sauvegardes, supervision et plan de recette. LXC et serveurs de jeux sont hors périmètre tant qu'une extension n'a pas été identifiée, versionnée et testée.
+> **Important sur l'automatisation :** installer Paymenter et préparer Proxmox ne suffit pas à automatiser la création d'une VM. Il faut une extension Paymenter-Proxmox compatible et identifiée, qui implémente les opérations nécessaires. La documentation du projet n'établit pas encore quelle extension a été retenue ni que le parcours complet a été exécuté. Les commandes `qm` ci-dessous démontrent la procédure Proxmox manuelle de référence ; elles ne prétendent pas créer un webhook ou un plugin.
 
-Quatre règles guident le projet :
+## 1. Périmètre et architecture
 
-1. Le paiement authentifié par notification serveur est le seul déclencheur de création.
-2. Proxmox n'est pas exposé à Internet ; l'API utilise un token dédié, limité et révocable.
-3. Une notification rejouée ne doit pas créer un doublon.
-4. Une procédure n'est pas une preuve : les résultats sont notés réussi, partiel, échoué ou non testé selon les observations.
+Le périmètre est limité aux VPS sous forme de VM QEMU/KVM. Les conteneurs LXC et serveurs de jeux ne sont pas annoncés comme provisionnés. Une VM possède son propre noyau, tandis qu'un conteneur partage celui de l'hôte ; le choix VM réduit le risque lié à un locataire administrateur, sans remplacer le cloisonnement réseau.
 
-## Architecture
+Le portail est installé directement sur une VM Debian 13, sans Docker. NGINX publie uniquement le répertoire `public` de Paymenter et transmet les requêtes PHP à PHP-FPM. MariaDB et Redis restent locaux au portail. Un worker systemd consomme les tâches asynchrones. Le worker qui exécute l'extension sera le seul composant autorisé à contacter l'API Proxmox sur le réseau de gestion.
 
-NGINX est l'unique point d'entrée public. Il sert `public` et transmet PHP à PHP-FPM par socket Unix. Paymenter utilise MariaDB et Redis en local. Un worker systemd traite les tâches asynchrones et le provisionnement ; seul ce composant joint l'API Proxmox, sur le réseau de gestion privé.
-
-| Zone | Composants | Exposition prévue |
+| Zone | Composants | Accès attendu |
 | --- | --- | --- |
-| Frontal | NGINX et TLS | HTTPS public ; HTTP selon redirection et challenge de certificat |
-| Application | Paymenter, PHP-FPM, worker, MariaDB, Redis | Interne/loopback ; bases non publiques |
-| Gestion | API et SSH Proxmox | VPN ou réseau d'administration uniquement |
-| Clients | VPS QEMU/KVM | Bridge/VLAN client, sans route vers la gestion |
-| Sauvegardes | Cible hors hôte | Accès réservé à l'exploitation, jamais aux VPS |
+| Internet | Clients et prestataire de paiement | HTTPS vers NGINX uniquement |
+| Portail | NGINX, PHP-FPM, Paymenter, worker | Services applicatifs nécessaires |
+| Données | MariaDB et Redis | Loopback ; aucun accès depuis Internet ou les VPS |
+| Gestion | Proxmox API, SSH, interface d'administration | Réseau privé d'administration/VPN uniquement |
+| Clients | VM QEMU/KVM | Bridge/VLAN client, pas d'accès à la gestion ni aux autres locataires |
+| Sauvegarde | Cible distincte de l'hôte | Flux limités depuis l'exploitation |
 
-Proxmox 8006, SSH, MariaDB 3306 et Redis 6379 ne doivent pas être ouverts à Internet. La segmentation IPv4 et IPv6, les VLAN, bridges, routes et règles réellement en place doivent être inventoriés avant de produire le schéma final.
+Proxmox 8006, SSH, MariaDB 3306 et Redis 6379 ne doivent pas être publiés sur Internet. Le fournisseur de paiement envoie son webhook vers le portail HTTPS ; la signature et l'identifiant d'événement sont vérifiés côté serveur avant tout provisionnement.
 
-## Inventaire initial
+## 2. Variables de déploiement
 
-Sur Debian :
+Avant de commencer, remplir cette fiche avec les valeurs réelles. Les valeurs ci-dessous sont des exemples de format, pas une configuration à copier.
+
+| Variable | Exemple de format | Où la vérifier |
+| --- | --- | --- |
+| `PANEL_FQDN` | `panel.example.net` | DNS contrôlé par l'exploitant |
+| `ADMIN_CIDR` | `192.0.2.0/24` | Réseau/VPN d'administration réel |
+| `PVE_FQDN` | `pve.example.net` | DNS privé et certificat de Proxmox |
+| `PVE_NODE` | nom du nœud | `pvesh get nodes` |
+| `PVE_STORAGE` | identifiant de stockage | `pvesm status` |
+| `PVE_BRIDGE` | bridge client | Inventaire réseau Proxmox |
+| `PVE_POOL` | `vps-clients` | Pool dédié aux VPS |
+| `TEMPLATE_VMID` | VMID libre réservé | `qm list` et allocation VMID |
+| `TEST_VMID` | VMID libre de recette | `qm list` et allocation VMID |
+| `CLIENT_CIDR` | sous-réseau client | Plan IP/VLAN approuvé |
+| `CLIENT_GATEWAY` | passerelle client | Configuration réseau effective |
+
+Utiliser les adresses réservées à la documentation (RFC 5737) uniquement comme illustrations. Avant d'exécuter des commandes avec une adresse, un VMID, un stockage ou un bridge, la remplacer par une valeur réellement allouée et vérifier qu'elle n'est pas déjà utilisée.
+
+## 3. Préparer Debian 13
+
+Installer Debian 13 minimal dans une VM dédiée au portail, configurer le nom d'hôte, l'adresse réseau, DNS et NTP. Garder un accès console Proxmox en cas d'erreur SSH. Puis mettre à jour les paquets :
+
+```bash
+sudo apt update
+sudo apt full-upgrade -y
+sudo apt install -y curl ca-certificates gnupg2 sudo lsb-release
+sudo timedatectl set-timezone Europe/Paris
+```
+
+Vérifier l'état initial et sauvegarder ces sorties dans le dossier de preuves, en expurgeant les adresses publiques :
 
 ```bash
 cat /etc/debian_version
@@ -52,39 +77,9 @@ ss -lntup
 journalctl -p err -b --no-pager
 df -h
 free -h
-php -v
-mariadb --version
-redis-server --version
-nginx -v
-composer --version
 ```
 
-Sur un nœud Proxmox :
-
-```bash
-pveversion -v
-pvesh get version
-pvenode status
-pvesm status
-ip -br address
-ip route
-pveum role list
-```
-
-Les versions Debian 13.7, PHP 8.3, MariaDB 10.11, Proxmox VE 9.2 et Paymenter v1.5.9 sont des références du dossier, pas nécessairement les versions installées. Consigne les valeurs observées et l'identité exacte de l'extension Paymenter-Proxmox.
-
-## Installation Debian
-
-Installer Debian 13 minimal sur une VM dédiée au portail, puis définir hostname, DNS, réseau et heure. Vérifier l'accès console avant de durcir SSH.
-
-```bash
-sudo apt update
-sudo apt full-upgrade -y
-sudo apt install -y curl ca-certificates gnupg2 sudo lsb-release
-sudo timedatectl set-timezone Europe/Paris
-```
-
-Créer un compte opérateur nominatif et installer sa clé SSH publique avant la désactivation des mots de passe :
+Créer un compte d'administration nominatif, poser sa clé publique SSH, puis durcir SSH. Ne désactiver les mots de passe qu'après un test de connexion par clé depuis une deuxième session.
 
 ```bash
 sudo adduser operateur
@@ -100,11 +95,11 @@ sudo sshd -t
 sudo systemctl reload ssh
 ```
 
-Garder la session ouverte et tester une deuxième connexion par clé avant de fermer la première. Remplacer `operateur` par le compte réel. En cas d'erreur, la console de secours doit rester accessible.
+Remplacer `operateur` par le compte réel. Garder la session existante ouverte, puis vérifier une nouvelle connexion SSH avec la clé. Si elle échoue, revenir par console et corriger le fichier avant de continuer.
 
-## Dépendances officielles Paymenter
+## 4. Installer les dépendances de Paymenter
 
-La documentation Paymenter consultée indique Debian 13 comme système supporté et fournit les commandes suivantes pour Debian 13. Elles installent notamment le dépôt PHP Sury et le dépôt MariaDB 10.11. Chaque dépôt tiers augmente la surface de confiance : examine les scripts, les clés et la prise en charge de la suite Debian avant de les utiliser, et suis toute mise à jour des consignes officielles.
+La documentation officielle Paymenter indique Debian 13 comme système pris en charge. Elle documente les paquets PHP 8.3, MariaDB 10.11, NGINX et Redis ci-dessous. Ces instructions utilisent le dépôt Sury et le script de dépôt MariaDB ; vérifie leurs instructions de signature et le support de la suite Debian avant exécution. Les dépôts tiers sont des dépendances privilégiées qu'il faut inscrire dans l'inventaire.
 
 ```bash
 sudo apt -y install curl ca-certificates gnupg2 sudo lsb-release
@@ -121,28 +116,30 @@ sudo apt update
 sudo apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,redis} mariadb-server nginx tar unzip git redis-server
 ```
 
-La procédure officielle publiée actuellement emploie ces commandes ; pour un durcissement supplémentaire des dépôts, vérifie la méthode de keyring `Signed-By` recommandée actuellement par Sury. Ne mélange pas plusieurs sources concurrentes pour un même paquet.
-
-Vérifier les composants :
+Vérifier les binaires, modules et services :
 
 ```bash
 php -v
 php -m
 php --ini
 php-fpm8.3 -v
+mariadb --version
+redis-server --version
+nginx -v
 systemctl status php8.3-fpm mariadb redis-server nginx --no-pager
-sudo ss -lntup
 ```
 
-## Base MariaDB et Redis
+La documentation source indique PHP 8.3 et MariaDB 10.11 comme pile visée. Les versions réellement obtenues dépendent des dépôts actifs ; enregistrer la sortie des commandes dans l'inventaire.
 
-La procédure Paymenter crée un utilisateur, une base et les privilèges correspondants. Exécuter le client SQL de manière interactive ; ne pas publier le mot de passe.
+## 5. Créer la base de données
+
+Ouvrir MariaDB en local :
 
 ```bash
 sudo mariadb
 ```
 
-Dans l'invite SQL, remplacer le placeholder par une valeur forte générée et conservée dans un gestionnaire de secrets :
+Dans le client MariaDB interactif, créer l'utilisateur et la base. Remplacer le mot de passe d'exemple par un secret généré et conservé dans un coffre. Cette valeur ne doit apparaître ni dans le dépôt, ni dans l'historique partagé, ni dans une capture.
 
 ```sql
 CREATE USER 'paymenter'@'127.0.0.1' IDENTIFIED BY 'REMPLACER_PAR_UN_SECRET_FORT';
@@ -151,14 +148,18 @@ GRANT ALL PRIVILEGES ON paymenter.* TO 'paymenter'@'127.0.0.1' WITH GRANT OPTION
 QUIT;
 ```
 
-Le guide officiel montre `WITH GRANT OPTION`; dans un déploiement à privilèges minimaux, évalue si ce droit est réellement requis par l'application et préfère l'omettre s'il ne l'est pas. Vérifie que MariaDB écoute uniquement sur les interfaces prévues :
+`WITH GRANT OPTION` figure dans la procédure d'installation Paymenter consultée. Il autorise le compte à déléguer ses privilèges : évaluer ce besoin pour la version utilisée et appliquer le moindre privilège possible si l'application fonctionne sans cette option.
+
+Contrôler l'écoute puis tester l'authentification. La valeur `127.0.0.1` doit correspondre à `DB_HOST` dans le `.env`.
 
 ```bash
 sudo ss -lntp | grep 3306
 mariadb -h 127.0.0.1 -u paymenter -p paymenter
 ```
 
-Redis :
+Dans l'invite SQL du compte applicatif, `SELECT 1;` doit réussir. Quitter le client avec `QUIT;`. MariaDB ne doit pas écouter sur une adresse publique.
+
+Démarrer Redis et vérifier sa disponibilité locale :
 
 ```bash
 sudo systemctl enable --now redis-server
@@ -166,11 +167,11 @@ redis-cli ping
 sudo ss -lntp | grep 6379
 ```
 
-Attendu : `PONG` et écoute limitée au périmètre local prévu. Vérifie dans le `.env` de la version Paymenter comment Redis est utilisé (queue, cache ou sessions) avant de modifier le pilote.
+Attendu : `PONG`. Vérifier l'adresse d'écoute ; le service ne doit pas être exposé à Internet. Le rôle exact de Redis (queue, cache ou sessions) se confirme dans la configuration Paymenter de la release choisie.
 
-## Installation Paymenter
+## 6. Installer Paymenter
 
-La méthode ci-dessous suit la documentation officielle Paymenter : archive de dernière release, extraction, permissions, configuration et migrations. Pour un déploiement reproductible, préférer une release/tag précis si le projet la publie, consigner le tag et vérifier la somme/signature lorsqu'elle est disponible. Ne considère pas `latest` comme un numéro de version immuable.
+La documentation officielle utilise l'archive de dernière release. Pour reproduire exactement un déploiement, noter la release effectivement téléchargée et remplacer `latest` par une version/tag explicite si la release fournit une URL immuable et une empreinte vérifiable.
 
 ```bash
 sudo mkdir -p /var/www/paymenter
@@ -184,7 +185,7 @@ sudo chown -R www-data:www-data /var/www/paymenter
 sudo -u www-data chmod -R 755 storage/* bootstrap/cache/
 ```
 
-Créer `.env`, puis l'éditer sans copier les secrets dans Git :
+Créer le fichier `.env` depuis le modèle de la release puis l'éditer :
 
 ```bash
 cd /var/www/paymenter
@@ -194,9 +195,23 @@ sudo chown www-data:www-data .env
 sudo chmod 640 .env
 ```
 
-Renseigner selon le `.env.example` de la release : `APP_URL` en HTTPS, paramètres `DB_DATABASE=paymenter`, `DB_USERNAME=paymenter`, `DB_PASSWORD` provenant du coffre, mode production, debug désactivé et paramètres Redis/mail réellement requis. Ne colle pas le contenu réel du `.env` dans un rapport ou une capture.
+Renseigner au minimum les valeurs correspondant à la base créée, et l'URL HTTPS réelle :
 
-Initialisation indiquée par la documentation Paymenter :
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://PANEL_FQDN_REEL
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=paymenter
+DB_USERNAME=paymenter
+DB_PASSWORD=SECRET_DE_VOTRE_COFFRE
+```
+
+Ceci est un extrait : le fichier `.env.example` de la version téléchargée fait autorité pour les autres variables, notamment mail, cache, queue et session. Ne publie jamais le `.env` réel.
+
+Depuis le répertoire d'installation, exécuter les commandes initiales documentées par Paymenter :
 
 ```bash
 cd /var/www/paymenter
@@ -208,17 +223,19 @@ sudo -u www-data php artisan app:init
 sudo -u www-data php artisan app:user:create
 ```
 
-L'APP_KEY est essentielle au chiffrement des données sensibles. Sauvegarde-la hors serveur et séparément de la base ; si elle est perdue, certaines données chiffrées peuvent être irrécupérables. Ne la régénère jamais pour dépanner une installation existante. Les migrations modifient la base : réalise une sauvegarde cohérente avant de les exécuter.
+`app:init` et `app:user:create` sont interactives. Créer un compte administrateur nominatif. La clé APP_KEY est utilisée pour protéger les données sensibles : sauvegarder sa valeur hors du serveur et indépendamment de la base. Sa perte rend les données chiffrées irrécupérables. Ne la régénérer jamais sur une instance déjà initialisée.
 
-### Cron du scheduler
+Après installation, vérifier le statut des migrations et la page d'administration depuis un navigateur sur HTTPS une fois NGINX configuré. Ne présenter aucune commande comme réussie tant que sa sortie n'a pas été observée.
 
-La documentation Paymenter demande un scheduler chaque minute sous `www-data` :
+### Scheduler
+
+La documentation Paymenter demande un cron exécuté chaque minute sous `www-data` :
 
 ```bash
 sudo crontab -u www-data -e
 ```
 
-Ajouter la ligne :
+Ajouter cette ligne dans l'éditeur :
 
 ```cron
 * * * * * php /var/www/paymenter/artisan schedule:run >> /dev/null 2>&1
@@ -232,7 +249,7 @@ sudo crontab -u www-data -l
 
 ### Worker systemd
 
-Créer `/etc/systemd/system/paymenter.service` avec le contenu documenté par Paymenter :
+Créer l'unité `/etc/systemd/system/paymenter.service` :
 
 ```ini
 [Unit]
@@ -251,7 +268,7 @@ RestartSec=5s
 WantedBy=multi-user.target
 ```
 
-Charger et démarrer :
+Recharger systemd et démarrer le worker ainsi que Redis :
 
 ```bash
 sudo systemctl daemon-reload
@@ -261,17 +278,17 @@ systemctl status paymenter.service --no-pager
 sudo journalctl -u paymenter.service -n 100 --no-pager
 ```
 
-Les noms d'utilisateur et chemin PHP peuvent varier ; adapte-les au résultat de l'inventaire. Le redémarrage du worker ne remplace pas l'idempotence des tâches de provisionnement.
+Vérifier que `/usr/bin/php` correspond au runtime utilisé par Paymenter (`command -v php`, `php -v`). Les jobs de provisionnement doivent être idempotents : un redémarrage du worker ou une relance ne doit pas dupliquer une VM.
 
-## NGINX et TLS
+## 7. Configurer NGINX
 
-La configuration NGINX ci-dessous suit le webserver guide Paymenter. Remplace `example.com` par le domaine réellement contrôlé et vérifie le socket PHP-FPM.
+Créer `/etc/nginx/sites-available/paymenter.conf`. Remplacer `PANEL_FQDN_REEL` par le nom DNS réel. La racine web doit être `/var/www/paymenter/public`, jamais `/var/www/paymenter`.
 
 ```nginx
 server {
     listen 80;
     listen [::]:80;
-    server_name example.com;
+    server_name PANEL_FQDN_REEL;
     root /var/www/paymenter/public;
 
     add_header X-Frame-Options "SAMEORIGIN";
@@ -284,7 +301,7 @@ server {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
-    location ~ ^/index\.php(/|$) {
+    location ~ ^/index\\.php(/|$) {
         fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
@@ -293,32 +310,33 @@ server {
 }
 ```
 
-Enregistrer dans `/etc/nginx/sites-available/paymenter.conf`, puis activer comme indiqué par le guide :
+Écrire le fichier dans `/etc/nginx/sites-available/paymenter.conf`, puis activer le site et tester la syntaxe avant de recharger NGINX :
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/paymenter.conf /etc/nginx/sites-enabled/paymenter.conf
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
-sudo chown -R www-data:www-data /var/www/paymenter/*
+sudo chown -R www-data:www-data /var/www/paymenter
 ```
 
-Pour TLS, le guide Paymenter donne aussi un bloc 80 redirigeant vers HTTPS et un bloc 443 avec certificats sous `/etc/letsencrypt/live/example.com/`. Obtiens d'abord un certificat valide pour le domaine réel avec Certbot, puis configure le bloc TLS. Ne copie pas le domaine d'exemple. Teste la configuration et le renouvellement :
+Le fichier de configuration ci-dessus correspond au virtual host HTTP documenté par Paymenter. Pour TLS, obtenir un certificat valide pour le FQDN contrôlé, puis configurer le serveur HTTPS selon le guide TLS de Paymenter/Certbot. Ne déclare pas HTTPS fonctionnel avant d'avoir testé la chaîne de certificat et le renouvellement.
+
+Contrôles après configuration :
 
 ```bash
 sudo nginx -t
-sudo systemctl reload nginx
-sudo certbot renew --dry-run
-curl -I https://example.com
-curl -I http://example.com
-curl -i https://example.com/.env
+systemctl status nginx php8.3-fpm --no-pager
+curl -I http://PANEL_FQDN_REEL
+curl -I https://PANEL_FQDN_REEL
+curl -i https://PANEL_FQDN_REEL/.env
 ```
 
-Le dernier test doit retourner un refus ou une absence de fichier, jamais son contenu. Le résultat réel reste à consigner.
+`PANEL_FQDN_REEL` est un placeholder de shell à remplacer. La requête vers `.env` ne doit jamais exposer son contenu. Les codes de retour observés et l'état TLS sont consignés comme preuve.
 
-## UFW, exposition et précautions
+## 8. Pare-feu de la VM portail
 
-N'active pas un pare-feu avec un CIDR d'exemple. Détermine d'abord l'adresse réelle d'administration, la console de secours et la politique IPv6. Exemple de séquence UFW du dossier à adapter et tester :
+Avant d'activer un pare-feu distant, confirmer le CIDR d'administration réel, garder une console de secours accessible et tester la connexion SSH avec une deuxième session. Remplacer `ADMIN_CIDR_REEL` par un CIDR valide avant d'exécuter. Le jeu de règles doit aussi être cohérent avec les pare-feux amont et le filtrage IPv6.
 
 ```bash
 sudo apt install -y ufw
@@ -331,126 +349,189 @@ sudo ufw show added
 sudo ufw status verbose
 ```
 
-Seulement après validation du CIDR et d'une session SSH de secours :
+Après contrôle des règles et de l'accès de secours :
 
 ```bash
 sudo ufw enable
 sudo ufw status numbered
 ```
 
-Ne pas ouvrir publiquement 3306, 6379, 8006 ou SSH. Vérifie également les pare-feux routeur, Proxmox et VM ; une règle Debian ne décrit pas toute la chaîne réseau.
+Ne pas ajouter de règle publique pour 3306, 6379 ou 8006. Si SSH est géré par un VPN, la règle 22 doit être limitée à l'adresse/réseau VPN correspondant.
 
-## Proxmox : rôle, utilisateur, token et ACL
+## 9. Préparer Proxmox VE
 
-Les commandes suivantes utilisent la syntaxe documentée `pveum` (rôles, ACL et tokens). Le jeu de privilèges métier exact dépend des appels réellement faits par l'extension Paymenter : ne crée pas le rôle de production avant de l'avoir vérifié dans l'API Viewer et sur un environnement de test. Le token à privilèges séparés reçoit des ACL propres ; ses droits effectifs sont l'intersection des ACL du token et de l'utilisateur.
-
-Exemple minimal de création d'identité/token ; le realm `pve` et les noms sont à confirmer :
+Sur le nœud Proxmox, faire l'inventaire avant toute création ou modification :
 
 ```bash
-pveum user add paymenterpve@pve --comment "Paymenter VPS provisioning"
-pveum user token add paymenterpve@pve provisioning --privsep 1 --comment "Paymenter provisioning"
-```
-
-Le token est affiché une seule fois : enregistre immédiatement le secret dans un coffre, ne le mets pas dans un fichier versionné ou une capture. Crée ensuite un rôle basé uniquement sur les privilèges requis et assigne ACL à des chemins restreints. Syntaxe documentée :
-
-```bash
-pveum role add PaymenterVM --privs "PRIVILEGE_1 PRIVILEGE_2"
-pveum acl modify /pool/POOL_REEL --users paymenterpve@pve --roles PaymenterVM
-pveum acl modify /vms/VMID_TEMPLATE --users paymenterpve@pve --roles PaymenterVM
-pveum acl modify /pool/POOL_REEL --tokens 'paymenterpve@pve!provisioning' --roles PaymenterVM
-```
-
-`PRIVILEGE_1`, `POOL_REEL` et `VMID_TEMPLATE` sont des placeholders explicites, pas des valeurs valides à exécuter telles quelles. Ne les remplace qu'après inventaire et validation du moindre privilège. Des ACL séparées peuvent aussi être nécessaires pour le stockage et le réseau ; les paths/privileges exacts sont à vérifier avec la version de Proxmox et l'extension.
-
-Vérifier les permissions effectives :
-
-```bash
-pveum user permissions paymenterpve@pve --path /pool/POOL_REEL
-pveum user token permissions paymenterpve@pve provisioning --path /pool/POOL_REEL
+pveversion -v
+pvesh get nodes
+pvesm status
+qm list
+ip -br address
+ip route
+pveum role list
 pveum acl list
 ```
 
-Test API de lecture : Proxmox emploie l'en-tête `Authorization: PVEAPIToken=USER@REALM!TOKENID=UUID`. Ne mets jamais le UUID du token dans l'historique ou un dépôt. La connexion doit utiliser HTTPS et vérifier le certificat CA Proxmox ; ne désactive pas la validation TLS. Vérifie le format selon l'outil API utilisé.
+Vérifier dans l'interface/API Proxmox la version, les nœuds, la capacité du stockage, le bridge/VLAN client, l'accès hors bande, le certificat TLS et le pare-feu. Ne pas utiliser les noms `local-lvm`, `vmbr0`, `9000` ou `1001` sans confirmer qu'ils existent et sont disponibles.
 
-Pour révoquer le token, syntaxe documentée :
+### Créer le pool de clients
+
+Le pool regroupe les VM et simplifie l'application des ACL. Choisir un identifiant absent de `pveum pool list` :
 
 ```bash
-pveum user token remove paymenterpve@pve provisioning
+pveum pool list
+pveum pool add vps-clients --comment "VM clientes provisionnees par Paymenter"
+pveum pool list --poolid vps-clients
 ```
 
-## Template et VM jetable
+Ajouter le stockage et les VM au pool selon les options disponibles dans la version Proxmox (`pveum help pool modify`).
 
-Inventorie d'abord le stockage, les bridges, le VMID libre, les ressources et les règles. Les lignes suivantes sont des commandes `qm` issues du dossier : elles ne sont pas un substitut au contrôle des options acceptées par ta version Proxmox et au choix du bon storage/bridge. Image, VMID, stockage et bridge doivent être vérifiés avant exécution.
+### Rôle et token API
+
+Les privilèges requis ne peuvent pas être déterminés de manière fiable sans connaître les endpoints réellement appelés par l'extension Paymenter-Proxmox. Proxmox documente chaque permission nécessaire dans l'API Viewer. Commencer par identifier l'extension, sa version et son code/documentation, puis créer un rôle de moindre privilège à partir des endpoints réellement utilisés.
+
+Le modèle suivant montre la syntaxe des commandes `pveum`, mais `PRIVILEGES_VALIDES` est volontairement à remplacer par une liste calculée et testée, non à copier littéralement :
+
+```bash
+pveum role add PaymenterProvisioner --privs "PRIVILEGE_1 PRIVILEGE_2"
+pveum user add paymenter@pve --comment "Paymenter provisioning service"
+pveum user token add paymenter@pve provisioning --privsep 1 --expire EPOCH_UNIX --comment "Paymenter API token"
+```
+
+Pour générer une expiration dans 180 jours :
+
+```bash
+date -d '+180 days' +%s
+```
+
+Recopier la valeur entière obtenue dans `--expire`. Le secret du token est présenté une seule fois lors de sa création : le conserver immédiatement dans un coffre, hors Git et hors journaux.
+
+Les ACL Proxmox s'appliquent sur un chemin, à l'utilisateur ou au token. Les tokens à privilèges séparés ont besoin d'ACL explicites et leurs permissions effectives sont l'intersection avec celles de l'utilisateur. La commande `pveum acl modify` documentée utilise `--users` et `--tokens` ; garder les deux ACL ciblées sur les ressources nécessaires :
+
+```bash
+pveum acl modify /pool/vps-clients --users paymenter@pve --roles PaymenterProvisioner
+pveum acl modify /pool/vps-clients --tokens 'paymenter@pve!provisioning' --roles PaymenterProvisioner
+```
+
+Ne pas attribuer `Administrator` sur `/`. Le rôle donné au template, au stockage et au bridge dépend des appels API utilisés ; accorder seulement les privilèges nécessaires sur les chemins correspondants après validation. Contrôler les droits effectifs :
+
+```bash
+pveum user permissions paymenter@pve --path /pool/vps-clients
+pveum user token permissions paymenter@pve provisioning --path /pool/vps-clients
+pveum acl list
+```
+
+Tester une lecture autorisée, une opération de création sur une VM jetable, puis vérifier qu'une opération hors du périmètre est refusée. Ne placer aucun secret API dans le `.env` public ni dans le dépôt.
+
+### API TLS
+
+L'API Proxmox est utilisée en HTTPS et son certificat doit être vérifié. Si le cluster utilise une CA privée, installer la CA publique correspondante dans le magasin de confiance Debian du portail, puis mettre à jour les CA. Ne pas désactiver la vérification TLS.
+
+```bash
+sudo install -m 0644 pve-root-ca.crt /usr/local/share/ca-certificates/pve-root-ca.crt
+sudo update-ca-certificates
+```
+
+`pve-root-ca.crt` est un nom de fichier à remplacer par le certificat CA réellement exporté depuis le cluster. La commande d'appel API dépend du client choisi ; utiliser le format d'en-tête documenté Proxmox `Authorization: PVEAPIToken=USER@REALM!TOKENID=UUID`, sans mettre le UUID du token dans un historique shell ou un dépôt.
+
+## 10. Créer le template Debian cloud-init
+
+La documentation Proxmox recommande une image cloud-init puis sa conversion en template. Les commandes suivantes reprennent la procédure `qm` Proxmox : le VMID, le stockage, le bridge et l'image doivent être disponibles et confirmés. Télécharger depuis la source Debian et vérifier le checksum publié avant import.
 
 ```bash
 cd /var/tmp
 curl -fLO https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2
 curl -fLO https://cloud.debian.org/images/cloud/trixie/latest/SHA512SUMS
 sha512sum -c --ignore-missing SHA512SUMS
+```
+
+Choisir un VMID libre (exemple 9000), un stockage qui accepte les disques VM et le bridge réellement dédié aux clients. Les paramètres ci-dessous sont les valeurs de l'exemple du projet :
+
+```bash
 qm create 9000 --name tpl-debian13 --memory 1024 --cores 1 --ostype l26 --scsihw virtio-scsi-single --net0 virtio,bridge=vmbr1 --agent enabled=1 --serial0 socket --vga serial0
 qm disk import 9000 debian-13-genericcloud-amd64.qcow2 local-lvm
-qm set 9000 --scsi0 local-lvm:vm-9000-disk-0,discard=on
+qm config 9000
+```
+
+Lire `qm config 9000` et relever le volume de disque importé. L'attacher en remplaçant `VOLUME_IMPORTÉ` par cette valeur exacte ; ne devine pas le nom du volume :
+
+```bash
+qm set 9000 --scsi0 VOLUME_IMPORTÉ,discard=on
 qm set 9000 --boot order=scsi0
 qm set 9000 --ide2 local-lvm:cloudinit
+qm set 9000 --serial0 socket --vga serial0
 qm template 9000
 ```
 
-Pour une image personnalisée, nettoie l'instance source avant conversion au template (exécuter dans l'invité avec procédure adaptée) :
+La séquence `qm create`, `qm disk import`, `qm set` et `qm template` suit le modèle cloud-init Proxmox. Le volume et les paramètres du stockage varient selon le backend, d'où l'étape de lecture de `qm config` avant attachement. Ne convertis pas en template avant d'avoir validé le boot de l'image et l'installation/présence de cloud-init dans l'invité.
+
+## 11. Créer et valider une VM de test
+
+Choisir un VMID libre et une adresse réservée pour le réseau client. Créer un fichier contenant la clé **publique** SSH du testeur (jamais la clé privée), par exemple `/root/test-vps.pub`. Vérifier la VMID, le pool, le stockage et l'adressage avant clonage :
 
 ```bash
-sudo cloud-init clean --logs --seed
-sudo truncate -s 0 /etc/machine-id
-sudo rm -f /var/lib/dbus/machine-id /etc/ssh/ssh_host_*
-sudo journalctl --rotate --vacuum-time=1s
-history -c
+qm list
+pveum pool list
+pvesm status
 ```
 
-Le clonage de référence ci-dessous crée et démarre une VM jetable :
+Créer et configurer une VM de recette depuis le template. Les valeurs ci-dessous (VMID 1001, `local-lvm`, `vmbr1`, IP/gateway) sont à remplacer par celles réservées dans l'inventaire :
 
 ```bash
 qm clone 9000 1001 --name vps-test-0001 --pool vps-clients --full 1 --storage local-lvm
-qm set 1001 --tags order-0001 --cores 2 --memory 2048 --ciuser debian --sshkeys /root/testkey.pub --ipconfig0 ip=10.20.0.50/24,gw=10.20.0.1 --nameserver 10.20.0.1 --net0 virtio,bridge=vmbr1,firewall=1
+qm set 1001 --tags order-test-0001 --cores 2 --memory 2048 --ciuser debian --sshkeys /root/test-vps.pub --ipconfig0 ip=10.20.0.50/24,gw=10.20.0.1 --nameserver 10.20.0.1 --net0 virtio,bridge=vmbr1,firewall=1
 qm resize 1001 scsi0 20G
+qm config 1001
 qm start 1001
 qm status 1001
 ```
 
-Les valeurs sont des exemples fictifs. `qm resize`, `qm start` et surtout `qm destroy` modifient l'infrastructure : vérifie le VMID et l'absence de données avant toute action. Ne lance ces commandes que sur une VM jetable que tu possèdes.
+Valider depuis la console Proxmox ou par SSH que cloud-init a configuré l'utilisateur, la clé, le hostname et le réseau. Confirmer qu'aucune VM ne peut joindre les réseaux d'administration, les services du portail ou les autres VPS.
 
-## Provisionnement : comportement attendu
-
-Le webhook signé est validé côté serveur (signature, identifiant, fraîcheur). Une tâche unique dérivée de l'identifiant de commande est créée. Avant tout clonage/retry, Paymenter vérifie s'il existe déjà une VM ou une tâche étiquetée pour cette commande. Les paramètres client sont convertis vers un pool, template, stockage et bridge autorisés. La VM est activée dans Paymenter seulement après vérification de son état et de son réseau.
-
-L'extension Paymenter-Proxmox doit être nommée, versionnée et testée. Le dossier ne prouve pas sa compatibilité ni la chaîne automatique. Les commandes `qm` ci-dessus servent de référence manuelle et de recette, pas d'implémentation du webhook.
-
-## Tests réseau autorisés
-
-Les tests sont à lancer depuis une VM de recette et uniquement vers tes propres adresses autorisées. Les adresses sont fictives :
+Après avoir vérifié qu'il s'agit bien de la VM jetable et qu'elle ne contient aucune donnée à conserver, arrêter/supprimer cette seule VM de test :
 
 ```bash
-ping -c 2 10.20.0.1
-nc -vz -w 3 10.10.0.10 8006
-nc -vz -w 3 10.10.0.10 22
-nc -vz -w 3 10.10.0.20 3306
-nc -vz -w 3 10.10.0.20 6379
-ping -c 2 10.20.0.51
-curl -I https://deb.debian.org
+qm config 1001
+qm shutdown 1001 --timeout 60
+qm status 1001
 ```
 
-Attendu selon la politique : passerelle accessible, réseau d'administration et autres locataires inaccessibles, sortie Internet permise selon la configuration. Un résultat de scan seul ne prouve pas l'absence de route ; compare avec les règles effectives, y compris IPv6.
-
-## Sauvegarde et restauration
-
-Sauvegarder base, données de l'application et configuration sensible, avec APP_KEY dans un coffre séparé. La sauvegarde doit être chiffrée, copiée hors hôte et restaurée en laboratoire. Les chemins et rétention doivent être ajustés à l'installation.
-
-Exemple documentaire avec `age` : le destinataire est un placeholder et la clé privée ne doit pas rester sur le serveur. Vérifie que `age` est installé, que la base est cohérente et que la commande d'archivage correspond aux données réellement stockées avant toute planification.
+La suppression est irréversible. Seulement après confirmation visuelle de l'ID et de l'état de test :
 
 ```bash
-sudo apt install age
+qm destroy 1001 --purge 1
+```
+
+Ne jamais copier ces commandes avec un VMID de production.
+
+## 12. Provisionnement depuis Paymenter
+
+Le scénario cible est :
+
+1. Le client passe commande ; Paymenter attend la confirmation de paiement.
+2. Le prestataire envoie son webhook HTTPS signé.
+3. Paymenter vérifie signature, identifiant et fraîcheur de l'événement.
+4. Une tâche idempotente, liée à l'identifiant de commande, est créée.
+5. L'extension valide l'offre, les quotas, le template, le pool, le stockage et le réseau autorisés.
+6. Elle recherche une VM déjà étiquetée avant tout retry, clone le template et configure cloud-init.
+7. Elle démarre la VM et vérifie son état avant d'activer le service dans Paymenter.
+8. L'accès est remis au client par clé SSH ou mécanisme de secret unique.
+
+Paymenter expose des hooks d'extension serveur, mais le nom et la compatibilité de l'extension Proxmox du projet doivent être renseignés à partir du code réellement retenu. Ne présente pas les commandes `qm` de test comme une automatisation Paymenter. La mise en production exige de tester paiement refusé, accepté, webhook rejoué/invalide, API indisponible, worker arrêté et absence de VM double.
+
+## 13. Sauvegarder et restaurer
+
+Sauvegarder au minimum la base MariaDB, le `.env`, les données de l'application et l'APP_KEY. La clé privée de chiffrement des archives doit rester hors serveur. La copie de sauvegarde doit être hors hôte ; une sauvegarde locale seule ne couvre pas la panne du serveur.
+
+Le dossier fournit un exemple `age`. Installer l'outil, remplacer le destinataire par une véritable clé publique de sauvegarde et vérifier les chemins de données de la release installée. Ne pas utiliser le placeholder comme s'il s'agissait d'une clé valide.
+
+```bash
+sudo apt install -y age
 umask 077
 STAMP=$(date +%F-%H%M)
 DEST=/var/backups/paymenter
-RECIPIENT=age1REMPLACER_PAR_CLE_PUBLIQUE
+RECIPIENT=REMPLACER_PAR_LA_CLE_PUBLIQUE_AGE
 sudo install -d -m 0700 "$DEST"
 sudo mariadb-dump --single-transaction --routines --triggers paymenter \
   | gzip \
@@ -459,9 +540,28 @@ sudo tar -C /var/www/paymenter -czf - .env storage/app \
   | age -r "$RECIPIENT" -o "$DEST/files-$STAMP.tar.gz.age"
 ```
 
-Ne restaure pas directement par-dessus la base active. Crée une VM isolée, restaure base et fichiers avec la bonne APP_KEY, laisse le worker arrêté jusqu'aux vérifications, puis consigne temps, erreurs, étapes manuelles et résultat. Les objectifs RPO/RTO sont mesurés par cet exercice, pas supposés.
+Adapter la destination, les droits et l'exclusion/rétention avant planification ; transférer ensuite les archives vers une cible distincte. Pour restaurer, créer une VM isolée de laboratoire, déchiffrer avec la clé privée conservée hors hôte, restaurer vers une base de test, rétablir les fichiers et la même APP_KEY, puis valider le portail. Garder le worker et les paiements de production désactivés durant l'essai. Consigner la durée, les erreurs et les étapes manuelles ; seuls ces résultats mesurent le RPO/RTO.
 
-## Exploitation et diagnostic
+## 14. Pare-feu et tests de sécurité
+
+Les essais réseau se font depuis une VM jetable autorisée, vers les adresses de l'infrastructure sous contrôle. Remplacer toutes les adresses d'exemple par le plan réel :
+
+```bash
+ping -c 2 CLIENT_GATEWAY_REEL
+nc -vz -w 3 PVE_IP_GESTION_REELLE 8006
+nc -vz -w 3 PVE_IP_GESTION_REELLE 22
+nc -vz -w 3 PORTAIL_IP_REELLE 3306
+nc -vz -w 3 PORTAIL_IP_REELLE 6379
+curl -I https://deb.debian.org
+```
+
+Attendus selon le plan : passerelle et sorties prévues accessibles ; Proxmox, SSH d'administration, bases, Redis et autres clients inaccessibles depuis le réseau VPS. Tester IPv6 séparément s'il est configuré. Enregistrer source, destination, date et résultat, sans publier d'adresse publique sensible.
+
+Ne pas activer une politique globale Proxmox/routeur sans console hors bande, règles d'administration vérifiées, procédure de retour arrière et tests en lab. Les règles de pare-feu dépendent de la topologie ; un bloc générique peut couper l'accès au nœud ou laisser passer IPv6.
+
+## 15. Diagnostic et exploitation
+
+Commandes de diagnostic sur la VM portail :
 
 ```bash
 systemctl --failed
@@ -476,34 +576,42 @@ df -h
 free -h
 ```
 
-Avant une mise à jour, relever les paquets candidats, vérifier la sauvegarde, l'espace disque et la fenêtre de maintenance. Tester sur clone, puis vérifier PHP, MariaDB, Redis, NGINX, scheduler, worker, Paymenter et intégration Proxmox. Séparer mises à jour système et migrations majeures de Paymenter.
-
-| Symptôme | Vérifications prioritaires |
+| Symptôme | Vérifications initiales |
 | --- | --- |
-| NGINX 502 | PHP-FPM, socket, droits, chemin PHP et journaux |
-| Erreur SQL | MariaDB, DB_HOST/DB_PORT, compte et privilèges |
-| Données chiffrées illisibles | APP_KEY correspondante ; ne pas la régénérer |
-| Provisionnement bloqué | Paiement, webhook, worker, file, API, token/ACL, template et stockage ; rechercher la VM avant retry |
-| VM sans réseau | Bridge/VLAN, cloud-init, adresse, route, DNS et pare-feu |
-| Certificat expiré | DNS, accès challenge, timer et `certbot renew --dry-run` |
+| NGINX 502 | État PHP-FPM, socket `php8.3-fpm.sock`, droits et journaux |
+| Connexion SQL refusée | MariaDB, DB_HOST, compte, privilèges, mot de passe |
+| Erreur de déchiffrement | APP_KEY sauvegardée ; ne jamais générer une nouvelle clé pour remplacer l'ancienne |
+| Provisionnement bloqué | Webhook, queue, worker, extension, API, ACL, stockage et template ; rechercher d'abord une VM existante |
+| VM sans réseau | Bridge/VLAN, cloud-init, IP, route, DNS, pare-feu invité/amont |
+| Certificat expiré | DNS, timer de renouvellement et test de renouvellement Certbot |
 
-## Recette et statut
+Avant une mise à jour, vérifier les avis de sécurité, versions candidates, espace disque et sauvegarde restaurable. Tester sur clone, puis vérifier web, base, Redis, scheduler, worker, paiement sandbox et intégration API. Ne pas mélanger une mise à jour système et une migration majeure de Paymenter.
 
-Dans le dossier technique, les tests suivants sont initialement **Non testés**. Ils restent ainsi tant que tu n'as pas capturé les résultats réels.
+## 16. Recette et preuves
+
+Les statuts sont initialement **Non testé** dans le dossier technique. Les remplacer uniquement par le résultat observé et une preuve expurgée.
 
 | Test | Résultat attendu | Statut initial |
 | --- | --- | --- |
-| HTTPS | Certificat valide, HTTP redirigé | Non testé |
+| Portail HTTPS | Certificat valide et redirection HTTP cohérente | Non testé |
 | Paiement refusé | Aucune VM créée | Non testé |
-| Paiement accepté | Une VM liée à la commande | Non testé |
-| Webhook rejoué/invalide | Aucun doublon, rejet approprié | Non testé |
-| API indisponible / worker arrêté | Erreur gérée, reprise sûre | Non testé |
+| Paiement accepté | Une seule VM liée à la commande | Non testé |
+| Webhook rejoué | Aucun doublon | Non testé |
+| Webhook invalide | Rejeté, aucune tâche de provisionnement | Non testé |
+| API Proxmox indisponible | Échec explicite, aucune VM active orpheline | Non testé |
+| Worker redémarré | Tâche reprise sans duplication | Non testé |
 | Proxmox depuis Internet | Inaccessible | Non testé |
-| Isolation VPS | Gestion et autres clients inaccessibles | Non testé |
-| Restauration | Portail de test utilisable | Non testé |
+| Isolation client | Gestion et autres VPS inaccessibles | Non testé |
+| Restauration | Portail de test utilisable avec APP_KEY correspondante | Non testé |
 
-Pour chaque essai, consigne l'environnement, les préconditions, les commandes, le résultat attendu et observé, l'heure et une preuve expurgée. Masque clés, mots de passe, adresses publiques, e-mails et données de paiement.
+Pour chaque cas, noter les préconditions, la commande ou les étapes, l'attendu, l'observé, l'heure, le résultat, la preuve expurgée et l'anomalie éventuelle. Masquer les secrets, tokens, adresses IP publiques, données de paiement et informations personnelles.
 
-## Références des commandes
+## Références techniques
 
-Les commandes Paymenter sont basées sur ses guides d'installation et de configuration NGINX ; la syntaxe de token/ACL s'appuie sur le manuel `pveum`. Vérifie toujours les instructions et les options propres à la release effectivement installée avant une opération de production.
+- [Documentation d'installation de Paymenter](https://paymenter.org/docs/installation/install)
+- [Configuration du serveur web NGINX Paymenter](https://paymenter.org/docs/installation/webserver)
+- [Commandes CLI Paymenter](https://paymenter.org/docs/guides/cli)
+- [Gestion des utilisateurs et permissions Proxmox VE](https://pve.proxmox.com/wiki/User_Management)
+- [Support Cloud-Init Proxmox VE](https://pve.proxmox.com/wiki/Cloud-Init_Support)
+- [Manuel `pveum`](https://pve.proxmox.com/pve-docs/pveum.1.html)
+- [Extensions serveur Paymenter](https://paymenter.org/development/extensions/server)
