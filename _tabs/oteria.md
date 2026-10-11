@@ -26,25 +26,25 @@ order: 0
       <h2>Du besoin à la recette</h2>
     </div>
 
-    <a class="project-card project-card--featured" href="{{ '/posts/oteria-b2-plateforme-vps-proxmox-paymenter/' | relative_url }}">
-      <div class="project-card__number">01</div>
+    {% assign oteria_posts = site.data.oteria_posts %}
+    {% for post in oteria_posts %}
+    <a class="project-card{% if forloop.first %} project-card--featured{% endif %}" href="{{ post.url | relative_url }}" style="margin-bottom: 0.9rem;">
+      <div class="project-card__number">{{ forloop.index | prepend: '00' | slice: -2, 2 }}</div>
       <div class="project-card__body">
-        <p class="project-card__status">Bachelor 2 · Projet individuel</p>
-        <h3>Plateforme VPS avec Paymenter et Proxmox VE</h3>
-        <p>
-          Concevoir une chaîne complète de commande, paiement et
-          provisionnement idempotent d'une VM Debian, avec segmentation réseau,
-          sauvegardes et recette de sécurité.
-        </p>
+        <p class="project-card__status">Projet OTERIA</p>
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.description }}</p>
         <span class="project-card__link">Lire le dossier <i class="fas fa-arrow-right"></i></span>
       </div>
+      {% if post.oteria_tags.size > 0 %}
       <div class="project-card__stack">
-        <span>Paymenter</span>
-        <span>Proxmox</span>
-        <span>Debian</span>
-        <span>Cloud-init</span>
+        {% for tag in post.oteria_tags limit: 4 %}
+        <span>{{ tag }}</span>
+        {% endfor %}
       </div>
+      {% endif %}
     </a>
+    {% endfor %}
   </div>
 
   <div class="project-hub__section project-hub__section--next">
