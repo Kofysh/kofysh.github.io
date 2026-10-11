@@ -1,75 +1,40 @@
-/* ==================================================================
-   Kofy — slate & blue
-   Couleurs et selection. Aucune mise en forme de contenu.
-   Le hero, les cartes, le hub et les articles restent dans custom.css.
-   ================================================================== */
+/* Palette primitives and Chirpy token mappings. Layout belongs in custom.css. */
 
 :root[data-bs-theme="dark"] {
-  --main-bg: #10141c;
-  --mask-bg: rgb(8 28 34 / 72%);
-  --main-border-color: rgb(138 175 255 / 14%);
-
-  --text-color: #d3dae6;
-  --text-muted-color: #9ba8bc;
+  color-scheme: dark;
+  --k-canvas: #10141c;
+  --k-surface: #181e29;
+  --k-surface-raised: #242d3d;
+  --k-surface-hover: #283449;
+  --k-text: #d3dae6;
+  --k-muted: #9ba8bc;
+  --k-heading: #f1f4fa;
+  --k-accent: #9abbff;
+  --k-border: rgb(138 175 255 / 14%);
+  --mask-bg: rgb(10 15 24 / 65%);
   --text-muted-highlight-color: #c8d2e1;
-  --heading-color: #f1f4fa;
   --label-color: #a6b2c6;
   --blockquote-border-color: rgb(138 175 255 / 48%);
   --blockquote-text-color: #a6b2c6;
-  --link-color: #9abbff;
   --link-underline-color: rgb(138 175 255 / 42%);
-  --button-bg: #181e29;
-  --btn-border-color: rgb(138 175 255 / 18%);
-  --btn-backtotop-color: #e5ebf5;
   --btn-backtotop-border-color: rgb(138 175 255 / 28%);
   --card-header-bg: #202837;
-  --checkbox-color: #9ba8bc;
   --checkbox-checked-color: #8aafff;
   --img-bg: radial-gradient(circle, #10141c 0%, #283449 100%);
   --shimmer-bg: linear-gradient(90deg, rgb(138 175 255 / 0%) 0%, rgb(138 175 255 / 14%) 50%, rgb(138 175 255 / 0%) 100%);
-  --menu-bg: #181e29;
-  --menu-border-color: rgb(138 175 255 / 18%);
   --menu-shadow-color: rgb(0 0 0 / 46%);
-  --menu-active-color: #f1f4fa;
   --menu-highlight-bg: rgb(138 175 255 / 10%);
-
-  --site-title-color: #e5ebf5;
-  --site-subtitle-color: #9ba8bc;
-  --sidebar-bg: rgb(20 26 36 / 98%);
-  --sidebar-border-color: rgb(138 175 255 / 16%);
-  --sidebar-muted-color: #9ba8bc;
   --sidebar-active-color: #f1f4fa;
   --sidebar-hover-bg: rgb(138 175 255 / 9%);
-  --sidebar-btn-bg: #242d3d;
   --sidebar-btn-color: #c8d2e1;
   --avatar-border-color: rgb(138 175 255 / 70%);
-
   --topbar-bg: rgb(16 20 28 / 94%);
-  --topbar-text-color: #d3dae6;
-  --search-border-color: rgb(138 175 255 / 18%);
-  --search-icon-color: #9ba8bc;
   --input-focus-border-color: #8aafff;
-
-  --post-list-text-color: #d3dae6;
-  --btn-patinator-text-color: #d3dae6;
-  --btn-paginator-hover-color: #283449;
-
   --toc-highlight: #7aa2ff;
-  --toc-popup-border-color: rgb(138 175 255 / 18%);
-  --tag-hover: #283449;
   --tb-odd-bg: #181e29;
   --tb-even-bg: #141a24;
-  --tb-border-color: rgb(138 175 255 / 12%);
-  --footnote-target-bg: #2457c5;
-  --btn-share-color: #9ba8bc;
   --btn-share-hover-color: #8aafff;
-  --card-bg: #181e29;
-  --card-hover-bg: #283449;
   --card-shadow: 0 16px 40px rgb(0 0 0 / 28%), 0 0 0 1px rgb(138 175 255 / 12%);
-
-  --kbd-wrap-color: #9ba8bc;
-  --kbd-text-color: #e5ebf5;
-  --kbd-bg-color: #242d3d;
   --prompt-text-color: rgb(215 238 234 / 80%);
   --prompt-tip-bg: rgb(14 70 58 / 72%);
   --prompt-tip-icon-color: #8aafff;
@@ -79,99 +44,58 @@
   --prompt-warning-icon-color: #f0b429;
   --prompt-danger-bg: rgb(92 24 24 / 78%);
   --prompt-danger-icon-color: #ff7b7b;
-
   --tag-border: rgb(138 175 255 / 30%);
   --tag-shadow: #10141c;
   --dash-color: rgb(138 175 255 / 24%);
   --search-tag-bg: #242d3d;
-
-  --categories-border: rgb(138 175 255 / 16%);
-  --categories-hover-bg: #283449;
   --categories-icon-hover-color: #8aafff;
-
   --timeline-node-bg: #8aafff;
   --timeline-color: rgb(138 175 255 / 28%);
   --timeline-year-dot-color: #7aa2ff;
-
-  --language-border-color: rgb(138 175 255 / 16%);
   --highlight-bg-color: #0d1118;
   --highlighter-rouge-color: #dce6f7;
-  --highlight-lineno-color: #8895aa;
   --inline-code-bg: rgb(138 175 255 / 9%);
   --code-color: #dce6f7;
-  --code-header-text-color: #9ba8bc;
   --code-header-muted-color: #283449;
   --code-header-icon-color: #7aa2ff;
   --clipboard-checked-color: #8aafff;
-  --filepath-text-color: #e5ebf5;
 }
 
 :root[data-bs-theme="light"] {
-  --main-bg: #f6f7fa;
-  --mask-bg: rgb(14 48 42 / 28%);
-  --main-border-color: rgb(49 70 105 / 12%);
-
-  --text-color: #303b4d;
-  --text-muted-color: #59677d;
+  color-scheme: light;
+  --k-canvas: #f6f7fa;
+  --k-surface: #ffffff;
+  --k-surface-raised: #f0f3f9;
+  --k-surface-hover: #e8eef9;
+  --k-text: #303b4d;
+  --k-muted: #59677d;
+  --k-heading: #192335;
+  --k-accent: #315fae;
+  --k-border: rgb(49 70 105 / 12%);
+  --mask-bg: rgb(25 35 53 / 25%);
   --text-muted-highlight-color: #46546a;
-  --heading-color: #192335;
   --label-color: #46546a;
   --blockquote-border-color: #315fae;
   --blockquote-text-color: #59677d;
-  --link-color: #315fae;
   --link-underline-color: rgb(49 95 174 / 36%);
-  --button-bg: #ffffff;
-  --btn-border-color: rgb(49 70 105 / 14%);
-  --btn-backtotop-color: #192335;
   --btn-backtotop-border-color: rgb(49 70 105 / 18%);
   --card-header-bg: #edf1f8;
-  --checkbox-color: #738199;
   --checkbox-checked-color: #315fae;
   --img-bg: radial-gradient(circle, #fafbfe 0%, #e1e8f4 100%);
   --shimmer-bg: linear-gradient(90deg, rgb(49 95 174 / 0%) 0%, rgb(49 95 174 / 10%) 50%, rgb(49 95 174 / 0%) 100%);
-  --menu-bg: #ffffff;
-  --menu-border-color: rgb(49 70 105 / 12%);
   --menu-shadow-color: rgb(25 35 53 / 12%);
-  --menu-active-color: #192335;
   --menu-highlight-bg: rgb(49 95 174 / 8%);
-
-  --site-title-color: #192335;
-  --site-subtitle-color: #59677d;
-  --sidebar-bg: rgb(255 255 255 / 84%);
-  --sidebar-border-color: rgb(49 70 105 / 12%);
-  --sidebar-muted-color: #59677d;
   --sidebar-active-color: #315fae;
   --sidebar-hover-bg: rgb(49 95 174 / 8%);
-  --sidebar-btn-bg: #f0f3f9;
   --sidebar-btn-color: #46546a;
   --avatar-border-color: rgb(49 95 174 / 55%);
-
   --topbar-bg: rgb(246 247 250 / 94%);
-  --topbar-text-color: #303b4d;
-  --search-border-color: rgb(49 70 105 / 16%);
-  --search-icon-color: #738199;
   --input-focus-border-color: #315fae;
-
-  --post-list-text-color: #303b4d;
-  --btn-patinator-text-color: #303b4d;
-  --btn-paginator-hover-color: #e8eef9;
-
   --toc-highlight: #2457c5;
-  --toc-popup-border-color: rgb(49 70 105 / 14%);
-  --tag-hover: #e8eef9;
   --tb-odd-bg: #fafbfe;
   --tb-even-bg: #f0f3f9;
-  --tb-border-color: rgb(49 70 105 / 10%);
-  --footnote-target-bg: #2457c5;
-  --btn-share-color: #59677d;
   --btn-share-hover-color: #315fae;
-  --card-bg: #ffffff;
-  --card-hover-bg: #e1e8f4;
   --card-shadow: 0 14px 32px rgb(25 35 53 / 8%), 0 0 0 1px rgb(49 70 105 / 8%);
-
-  --kbd-wrap-color: #59677d;
-  --kbd-text-color: #192335;
-  --kbd-bg-color: #f0f3f9;
   --prompt-text-color: #303b4d;
   --prompt-tip-bg: rgb(18 140 116 / 12%);
   --prompt-tip-icon-color: #315fae;
@@ -181,51 +105,72 @@
   --prompt-warning-icon-color: #9a6700;
   --prompt-danger-bg: rgb(220 60 60 / 10%);
   --prompt-danger-icon-color: #c43232;
-
   --tag-border: rgb(49 95 174 / 28%);
   --tag-shadow: rgb(25 35 53 / 6%);
   --dash-color: rgb(49 70 105 / 22%);
   --search-tag-bg: #edf1f8;
-
-  --categories-border: rgb(49 70 105 / 12%);
-  --categories-hover-bg: #e8eef9;
   --categories-icon-hover-color: #315fae;
-
   --timeline-node-bg: #315fae;
   --timeline-color: rgb(49 95 174 / 28%);
   --timeline-year-dot-color: #2457c5;
-
-  --language-border-color: rgb(49 70 105 / 12%);
   --highlight-bg-color: #fafbfe;
   --highlighter-rouge-color: #192335;
-  --highlight-lineno-color: #738199;
   --inline-code-bg: rgb(49 95 174 / 8%);
   --code-color: #303b4d;
-  --code-header-text-color: #59677d;
   --code-header-muted-color: #e1e8f4;
   --code-header-icon-color: #2457c5;
   --clipboard-checked-color: #315fae;
-  --filepath-text-color: #192335;
 }
 
-:root[data-bs-theme="dark"] {
-  color-scheme: dark;
-}
-
-:root[data-bs-theme="light"] {
-  color-scheme: light;
+:root {
+  --main-bg: var(--k-canvas);
+  --main-border-color: var(--k-border);
+  --text-color: var(--k-text);
+  --text-muted-color: var(--k-muted);
+  --heading-color: var(--k-heading);
+  --link-color: var(--k-accent);
+  --button-bg: var(--k-surface);
+  --btn-border-color: var(--k-border);
+  --btn-backtotop-color: var(--k-heading);
+  --checkbox-color: var(--k-muted);
+  --menu-bg: var(--k-surface);
+  --menu-border-color: var(--k-border);
+  --menu-active-color: var(--k-heading);
+  --site-title-color: var(--k-heading);
+  --site-subtitle-color: var(--k-muted);
+  --sidebar-bg: var(--k-surface);
+  --sidebar-border-color: var(--k-border);
+  --sidebar-muted-color: var(--k-muted);
+  --sidebar-btn-bg: var(--k-surface-raised);
+  --topbar-text-color: var(--k-text);
+  --search-border-color: var(--k-border);
+  --search-icon-color: var(--k-muted);
+  --post-list-text-color: var(--k-text);
+  --btn-patinator-text-color: var(--k-text);
+  --btn-paginator-hover-color: var(--k-surface-hover);
+  --toc-popup-border-color: var(--k-border);
+  --tag-hover: var(--k-surface-hover);
+  --tb-border-color: var(--k-border);
+  --footnote-target-bg: #2457c5;
+  --btn-share-color: var(--k-muted);
+  --card-bg: var(--k-surface);
+  --card-hover-bg: var(--k-surface-hover);
+  --kbd-wrap-color: var(--k-muted);
+  --kbd-text-color: var(--k-heading);
+  --kbd-bg-color: var(--k-surface-raised);
+  --categories-border: var(--k-border);
+  --categories-hover-bg: var(--k-surface-hover);
+  --language-border-color: var(--k-border);
+  --highlight-lineno-color: var(--k-muted);
+  --code-header-text-color: var(--k-muted);
+  --filepath-text-color: var(--k-heading);
 }
 
 ::selection {
-  background: rgb(138 175 255 / 32%);
+  background: var(--menu-highlight-bg);
   color: inherit;
 }
 
 html {
-  scrollbar-color: #6584bb transparent;
+  scrollbar-color: var(--text-muted-color) transparent;
 }
-
-#sidebar a.site-title { color: var(--site-title-color); background: none; }
-#avatar { box-shadow: 0 0 0 1px var(--sidebar-border-color); }
-#sidebar .nav-item.active .nav-link { box-shadow: inset 3px 0 0 var(--link-color); }
-#back-to-top { border: 1px solid var(--btn-backtotop-border-color); background: var(--button-bg); color: var(--btn-backtotop-color); }

@@ -15,11 +15,6 @@
         '<h1>Le rack, documenté.</h1>' +
         '<p>Retours d’expérience et guides pratiques sur les systèmes, les réseaux et la cybersécurité.</p>' +
       '</div>' +
-      '<div class="kofy-hero__term" aria-label="Environnement technique">' +
-        '<div><span class="term__prompt">kofy@homelab</span><span class="term__sep">:</span><span class="term__path">~</span><span class="term__sep">$</span> <span class="term__cmd">cat stack.txt</span></div>' +
-        '<div class="term__out">Proxmox · Docker · Linux<br>WireGuard · OPNsense · réseau</div>' +
-        '<div><span class="term__prompt">→</span> <span class="term__cmd">Tester. Comprendre. Documenter.</span></div>' +
-      '</div>' +
     '</div>';
   list.parentNode.insertBefore(hero, list);
 
