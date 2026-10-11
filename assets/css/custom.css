@@ -424,6 +424,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 
 :root[data-bs-theme] #archives ul li:nth-child(odd) {
+  background-image: none;
   background-color: var(--card-bg);
 }
 
