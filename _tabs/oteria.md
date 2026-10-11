@@ -1,7 +1,7 @@
 ---
 title: OTERIA
 icon: fas fa-graduation-cap
-order: 3
+order: 0
 ---
 
 <section class="project-hub">
