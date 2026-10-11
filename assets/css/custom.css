@@ -345,3 +345,73 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   background: var(--button-bg);
   color: var(--btn-backtotop-color);
 }
+
+/* About: Markdown content inside scoped, responsive surfaces. */
+.about-intro {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--main-border-color);
+  border-top: 3px solid var(--link-color);
+  border-radius: .75rem;
+  background: var(--card-bg);
+}
+
+.about-intro__eyebrow,
+.about-server__role {
+  margin: 0 0 .75rem;
+  color: var(--link-color);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.about-intro h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  line-height: 1.3;
+}
+
+.about-intro > :last-child,
+.about-contact > :last-child {
+  margin-bottom: 0;
+}
+
+.about-servers {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.about-server {
+  min-width: 0;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--main-border-color);
+  border-radius: .75rem;
+  background: var(--card-bg);
+}
+
+.about-server h3 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+}
+
+.about-server .table-wrapper {
+  margin-bottom: 0;
+}
+
+.about-server table {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.about-contact {
+  margin-top: 2rem;
+  padding: 1.25rem 1.5rem;
+  border-left: 3px solid var(--link-color);
+  border-radius: 0 .75rem .75rem 0;
+  background: var(--card-header-bg);
+}
+
+.about-contact h2 {
+  margin-top: 0;
+}
