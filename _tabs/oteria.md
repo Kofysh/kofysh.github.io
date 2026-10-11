@@ -26,7 +26,7 @@ order: 3
       <h2>Du besoin à la recette</h2>
     </div>
 
-    <a class="project-card project-card--featured" href="{{ '/posts/projet-oteria-b2-plateforme-vps-avec-paymenter-et-proxmox-ve/' | relative_url }}">
+    <a class="project-card project-card--featured" href="{{ '/posts/oteria-b2-plateforme-vps-proxmox-paymenter/' | relative_url }}">
       <div class="project-card__number">01</div>
       <div class="project-card__body">
         <p class="project-card__status">Bachelor 2 · Projet individuel</p>
