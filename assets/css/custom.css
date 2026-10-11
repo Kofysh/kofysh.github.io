@@ -415,3 +415,32 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .about-contact h2 {
   margin-top: 0;
 }
+
+/* Archives: replace Chirpy's hard-coded striped gradients in both modes. */
+:root[data-bs-theme] #archives ul li {
+  background-image: none;
+  border-radius: .35rem;
+  transition: background-color .2s ease;
+}
+
+:root[data-bs-theme] #archives ul li:nth-child(odd) {
+  background-color: var(--card-bg);
+}
+
+:root[data-bs-theme] #archives ul li:nth-child(even) {
+  background-color: var(--main-bg);
+}
+
+:root[data-bs-theme] #archives ul li:hover,
+:root[data-bs-theme] #archives ul li:focus-within {
+  background-color: var(--card-hover-bg);
+}
+
+#archives .year {
+  color: var(--heading-color);
+}
+
+#archives .year::after,
+#archives a::before {
+  box-shadow: none;
+}
