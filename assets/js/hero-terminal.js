@@ -13,8 +13,8 @@
   var SEQUENCE = [
     { cmd: 'whoami', out: 'kofy — administrateur systèmes & homelabber' },
     { cmd: 'cat ~/stack.txt', out: 'proxmox · docker · traefik · wireguard · opnsense' },
-    { cmd: 'ls ~/posts', out: 'reseau-vlan-unifi  wireguard-failover  wireguard-vyos' },
-    { cmd: 'uptime', out: 'up 365 days — self-hosted with ❤' }
+    { cmd: 'ls ~/posts', out: 'oteria-b2-vps  bgp-homelab  ospf-mpls  anti-ddos-xdp' },
+    { cmd: 'uptime', out: 'up 365 days — self-hosted, documented' }
   ];
 
   var PROMPT = '<span class="term__prompt">kofy@homelab</span>' +

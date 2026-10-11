@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" aria-label="Projet OTERIA B2 Paymenter Proxmox" role="img" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#071016"/>
+      <stop offset="100%" stop-color="#10222a"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#2ee6c5"/>
+      <stop offset="100%" stop-color="#5b8cff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1020" cy="120" r="240" fill="#2ee6c5" opacity=".08"/>
+  <circle cx="920" cy="520" r="180" fill="#5b8cff" opacity=".1"/>
+  <g fill="none" stroke="#1f3a44" stroke-width="2">
+    <rect x="860" y="160" width="240" height="150" rx="16"/>
+    <rect x="900" y="340" width="200" height="120" rx="14"/>
+    <path d="M980 310 v30"/>
+  </g>
+  <text x="78" y="210" fill="#8aa4ad" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="28" font-weight="700" letter-spacing="5">OTERIA · B2 · CYBERSÉCURITÉ</text>
+  <text x="78" y="310" fill="url(#title)" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="74" font-weight="800" letter-spacing="-2">Plateforme VPS</text>
+  <text x="78" y="392" fill="#e8f4f2" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="48" font-weight="700">Paymenter × Proxmox VE</text>
+  <text x="78" y="460" fill="#8aa4ad" font-family="'IBM Plex Sans',system-ui,sans-serif" font-size="26" font-weight="600">Commande · paiement sandbox · clone cloud-init</text>
+  <g fill="#2ee6c5" font-family="'IBM Plex Mono',monospace" font-size="20">
+    <text x="80" y="560">debian 13</text>
+    <text x="250" y="560" fill="#5b8cff">php 8.3</text>
+    <text x="400" y="560" fill="#f0c14a">qm clone</text>
+    <text x="560" y="560" fill="#9ae6cb">age backup</text>
+  </g>
+</svg>
