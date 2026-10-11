@@ -48,24 +48,11 @@ body {
   line-height: 1.35;
 }
 
-.preview-img {
-  overflow: hidden;
-  background: var(--card-header-bg);
-}
-
-.preview-img img {
-  object-fit: cover;
-  transition: transform .55s var(--k-ease);
-}
-
 @media (hover: hover) and (pointer: fine) {
   #post-list .card:hover, .project-card:hover {
     transform: translateY(-3px);
     border-color: var(--link-color);
     box-shadow: 0 12px 28px rgb(0 0 0 / 9%);
-  }
-  #post-list .card:hover .preview-img img {
-    transform: scale(1.025);
   }
 
 }
@@ -319,7 +306,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     transition: none !important;
     scroll-behavior: auto !important;
   }
-  #post-list .card, .project-card, .preview-img img {
+  #post-list .card, .project-card {
     transform: none !important;
   }
 
@@ -444,4 +431,14 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 #archives .year::after,
 #archives a::before {
   box-shadow: none;
+}
+
+/* Text-only post cards, at every viewport width. */
+#post-list .post-preview > .col-md-5 {
+  display: none;
+}
+
+#post-list .post-preview > .col-md-7 {
+  flex: 0 0 100%;
+  width: 100%;
 }
