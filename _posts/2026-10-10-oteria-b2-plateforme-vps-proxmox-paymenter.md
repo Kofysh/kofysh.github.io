@@ -3,7 +3,7 @@ title: "Projet OTERIA B2 : plateforme VPS avec Paymenter et Proxmox VE"
 layout: post
 date: 2026-10-10 18:48:00 +0200
 last_modified_at: 2026-10-11 12:50:00 +0200
-categories: [Tutoriels, Cybersécurité, Homelab]
+categories: [OTERIA, Tutoriels, Cybersécurité, Homelab]
 tags: [OTERIA, Proxmox, Paymenter, VPS, Debian, Linux, cloud-init]
 image: /assets/img/covers/oteria-b2-paymenter.svg
 description: >-

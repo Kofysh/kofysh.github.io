@@ -276,3 +276,225 @@ button:focus-visible {
     transform: none !important;
   }
 }
+
+/* ---- Hub projets OTERIA ---- */
+
+.project-hub {
+  --hub-border: rgba(46, 230, 197, 0.2);
+  --hub-muted: #8da8a5;
+}
+
+.project-hub__hero {
+  position: relative;
+  margin: -0.25rem 0 2.25rem;
+  padding: clamp(1.5rem, 4vw, 2.8rem);
+  overflow: hidden;
+  border: 1px solid var(--hub-border);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(91, 140, 255, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(8, 25, 31, 0.98), rgba(13, 39, 48, 0.82));
+  box-shadow: var(--k-glow);
+}
+
+.project-hub__hero::after {
+  content: "OTERIA";
+  position: absolute;
+  right: -0.4rem;
+  bottom: -1.6rem;
+  color: rgba(255, 255, 255, 0.035);
+  font-size: clamp(4rem, 13vw, 9rem);
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  pointer-events: none;
+}
+
+.project-hub__eyebrow {
+  margin: 0 0 0.45rem;
+  color: var(--k-cyan);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.project-hub__hero h1,
+.project-hub__heading h2 {
+  margin-top: 0;
+  letter-spacing: -0.035em;
+}
+
+.project-hub__hero h1 {
+  margin-bottom: 0.65rem;
+  color: #f4fffc;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+}
+
+.project-hub__intro {
+  position: relative;
+  z-index: 1;
+  max-width: 43rem;
+  margin-bottom: 1.2rem;
+  color: #a9c3bf;
+  font-size: 1.05rem;
+}
+
+.project-hub__meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.project-hub__meta span,
+.project-card__stack span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.38rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: #c5dfdb;
+  font-size: 0.75rem;
+}
+
+.project-hub__meta i {
+  color: var(--k-cyan);
+}
+
+.project-hub__section {
+  margin: 0 0 2.35rem;
+}
+
+.project-hub__heading {
+  margin-bottom: 1rem;
+}
+
+.project-hub__heading h2 {
+  margin-bottom: 0;
+}
+
+.project-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1.1rem;
+  padding: 1.35rem;
+  overflow: hidden;
+  border: 1px solid var(--hub-border);
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(46, 230, 197, 0.08), rgba(91, 140, 255, 0.06));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  transition: transform 0.4s var(--k-ease), border-color 0.3s ease, box-shadow 0.4s ease;
+}
+
+.project-card:hover,
+.project-card:focus-visible {
+  border-color: rgba(46, 230, 197, 0.55);
+  box-shadow: var(--k-glow), 0 18px 34px rgba(0, 0, 0, 0.16);
+  transform: translateY(-4px);
+}
+
+.project-card__number {
+  color: var(--k-cyan);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.project-card__body {
+  min-width: 0;
+}
+
+.project-card__status {
+  margin: 0 0 0.35rem;
+  color: var(--hub-muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.project-card h3 {
+  margin: 0 0 0.6rem;
+  color: var(--heading-color);
+}
+
+.project-card__body p:not(.project-card__status) {
+  margin-bottom: 0.8rem;
+  color: var(--text-muted-color);
+}
+
+.project-card__link {
+  color: var(--k-cyan);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.project-card__stack {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.project-card__stack span {
+  padding: 0.25rem 0.55rem;
+  color: var(--hub-muted);
+  font-size: 0.7rem;
+}
+
+.project-hub__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+}
+
+.project-note {
+  padding: 1rem;
+  border: 1px solid var(--main-border-color);
+  border-radius: 0.85rem;
+  background: var(--card-bg);
+}
+
+.project-note i {
+  margin-bottom: 0.7rem;
+  color: var(--k-cyan);
+  font-size: 1.2rem;
+}
+
+.project-note h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.project-note p {
+  margin: 0;
+  color: var(--text-muted-color);
+  font-size: 0.86rem;
+}
+
+.project-hub__callout {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-left: 3px solid var(--k-blue);
+  border-radius: 0 0.8rem 0.8rem 0;
+  background: rgba(91, 140, 255, 0.07);
+}
+
+.project-hub__callout i {
+  padding-top: 0.2rem;
+  color: var(--k-blue);
+}
+
+.project-hub__callout p {
+  margin: 0;
+  color: var(--text-muted-color);
+}
+
+@media (max-width: 700px) {
+  .project-hub__grid {
+    grid-template-columns: 1fr;
+  }
+}
