@@ -58,7 +58,7 @@ analytics:
 pageviews:
   provider:
 
-theme_mode:
+theme_mode: dark
 cdn:
 avatar: /assets/img/pp.png
 social_preview_image: /assets/img/pp.png
