@@ -40,7 +40,7 @@ Trois serveurs physiques sous [**Proxmox VE**](https://www.proxmox.com/), héber
 
 <section class="about-server" markdown="1">
 
-<p class="about-server__role">02 · GPU & intelligence artificielle</p>
+<p class="about-server__role">02 · Virtualisation</p>
 
 ### Dell PowerEdge R730
 
