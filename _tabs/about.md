@@ -30,11 +30,11 @@ Trois serveurs physiques sous [**Proxmox VE**](https://www.proxmox.com/), héber
 | Composant | Configuration |
 | :--- | :--- |
 | **Processeur** | AMD Ryzen Threadripper PRO 7995WX · 96 cœurs / 192 threads |
-| **Mémoire** | 1 To DDR5 ECC RDIMM |
+| **Mémoire** | 384 Go DDR5 ECC RDIMM |
 | **Stockage système** | 2 × 1,92 To NVMe |
-| **Stockage des données** | 8 × 7,68 To NVMe |
+| **Stockage des données** | 8 × 7,68 To SSD SAS |
 | **GPU** | 4 × NVIDIA RTX A6000 · 48 Go GDDR6 ECC par carte |
-| **Réseau interne** | 100 GbE |
+| **Réseau interne** | 10 GbE |
 
 </section>
 
@@ -47,10 +47,10 @@ Trois serveurs physiques sous [**Proxmox VE**](https://www.proxmox.com/), héber
 | Composant | Configuration |
 | :--- | :--- |
 | **Processeur** | AMD Ryzen Threadripper PRO 7985WX · 64 cœurs / 128 threads |
-| **Mémoire** | 512 Go DDR5 ECC RDIMM |
+| **Mémoire** | 384 Go DDR5 ECC RDIMM |
 | **Stockage système** | 2 × 1,92 To NVMe |
-| **Stockage des données** | 8 × 7,68 To NVMe |
-| **Réseau interne** | 100 GbE |
+| **Stockage des données** | 8 × 7,68 To SSD SAS |
+| **Réseau interne** | 10 GbE |
 
 </section>
 
@@ -63,10 +63,10 @@ Trois serveurs physiques sous [**Proxmox VE**](https://www.proxmox.com/), héber
 | Composant | Configuration |
 | :--- | :--- |
 | **Processeur** | AMD Ryzen Threadripper PRO 7975WX · 32 cœurs / 64 threads |
-| **Mémoire** | 256 Go DDR5 ECC RDIMM |
+| **Mémoire** | 384 Go DDR5 ECC RDIMM |
 | **Stockage système** | 2 × 1,92 To NVMe |
-| **Stockage des données** | 4 × 3,84 To NVMe |
-| **Réseau interne** | 25 GbE SFP28 |
+| **Stockage des données** | 4 × 3,84 To SSD SAS |
+| **Réseau interne** | 10 GbE |
 
 </section>
 
