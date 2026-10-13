@@ -1,0 +1,82 @@
+/* Interactions : mêmes repères à la souris, au clavier et au toucher. */
+:root { --k-feedback: 180ms cubic-bezier(.2, .8, .2, 1); }
+#sidebar ul li.nav-item a.nav-link {
+  transition: background-color var(--k-feedback), color var(--k-feedback), box-shadow var(--k-feedback);
+}
+#sidebar .nav-link i {
+  transition: transform var(--k-feedback), color var(--k-feedback);
+}
+#post-list .card, .project-card {
+  transition: transform 240ms var(--k-ease), background-color var(--k-feedback),
+    border-color var(--k-feedback), box-shadow 240ms var(--k-ease);
+}
+body .btn, body .post-tag, body .tag, .project-card__link,
+.kofy-intro__replay, .kofy-intro__skip {
+  transition: transform var(--k-feedback), color var(--k-feedback),
+    background-color var(--k-feedback), border-color var(--k-feedback),
+    box-shadow var(--k-feedback);
+}
+body .btn, .kofy-intro__replay, .kofy-intro__skip { cursor: pointer; }
+body .btn:disabled, body .btn.disabled { cursor: default; }
+.content p a:not(.btn):not(.post-tag) {
+  text-underline-offset: .22em;
+  transition: color var(--k-feedback), text-decoration-color var(--k-feedback);
+}
+#post-list .card:focus-visible, .project-card:focus-within {
+  border-color: var(--k-accent);
+  background: var(--k-surface-raised);
+  box-shadow: 0 0 0 3px var(--menu-highlight-bg);
+}
+body .btn:focus-visible, body .post-tag:focus-visible, body .tag:focus-visible,
+.kofy-intro__replay:focus-visible {
+  background: var(--k-surface-hover);
+  color: var(--k-accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  #sidebar ul li.nav-item a.nav-link:hover {
+    color: var(--k-accent);
+    background: var(--menu-highlight-bg);
+    box-shadow: inset 0 0 0 1px var(--k-border);
+  }
+  #sidebar .nav-link:hover i { transform: translateX(2px) scale(1.12); }
+  #post-list .card:hover, .project-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--k-accent);
+    background: var(--k-surface-raised);
+    box-shadow: 0 12px 28px rgb(0 0 0 / 16%);
+  }
+  body .btn:not(:disabled):not(.disabled):hover,
+  .kofy-intro__replay:not(:disabled):hover {
+    color: var(--k-heading);
+    background: var(--k-surface-hover);
+    border-color: var(--k-accent);
+    box-shadow: 0 3px 12px rgb(0 0 0 / 16%);
+    transform: translateY(-2px);
+  }
+  body .post-tag:hover, body .tag:hover {
+    color: var(--k-canvas);
+    background: var(--k-accent);
+    border-color: var(--k-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 12px rgb(0 0 0 / 16%);
+  }
+  .project-card__link:hover { color: var(--k-heading); text-decoration: underline; text-underline-offset: .25em; }
+  .content p a:not(.btn):not(.post-tag):hover { color: var(--k-heading); text-decoration: underline; }
+  .kofy-intro__skip:hover { background: #ffffff24; transform: translateY(-2px); }
+}
+body .btn:not(:disabled):not(.disabled):active,
+body .post-tag:active, body .tag:active,
+.kofy-intro__replay:not(:disabled):active, .kofy-intro__skip:active {
+  transform: scale(.96);
+  box-shadow: none;
+}
+#sidebar ul li.nav-item a.nav-link:active { background: var(--k-surface-hover); }
+#post-list .card:active { transform: scale(.995); }
+@media (prefers-reduced-motion: reduce) {
+  #post-list .card, .project-card, #sidebar .nav-link i,
+  body .btn, body .post-tag, body .tag,
+  .kofy-intro__replay, .kofy-intro__skip {
+    transition: none !important;
+    transform: none !important;
+  }
+}
