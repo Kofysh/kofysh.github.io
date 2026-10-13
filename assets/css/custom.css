@@ -45,7 +45,7 @@ body {
   transition: transform .3s var(--k-ease), border-color .3s ease, box-shadow .3s ease;
 }
 
-#post-list .card h1 {
+#post-list .card .card-body h1.card-title {
   letter-spacing: -.025em;
   line-height: 1.35;
 }
@@ -456,7 +456,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   font-weight: 500;
   letter-spacing: -.04em;
 }
-#sidebar .site-subtitle {
+#sidebar .profile-wrapper .site-subtitle {
   font-style: normal;
   line-height: 1.6;
 }
@@ -514,13 +514,13 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 #post-list .card .card-body {
   padding: 1.65rem;
 }
-#post-list .card h1 {
+#post-list .card .card-body h1.card-title {
   color: var(--k-accent);
   font-size: 1.35rem;
   font-weight: 400;
   letter-spacing: -.015em;
 }
-#post-list .card:hover h1 {
+#post-list .card:hover .card-body h1.card-title {
   text-decoration: underline;
   text-underline-offset: .2em;
 }
@@ -557,6 +557,7 @@ div.highlighter-rouge {
 @media (min-width: 850px) {
   #search {
     width: min(32rem, 52%);
+    max-width: 32rem;
   }
 }
 @media (max-width: 849px) {
