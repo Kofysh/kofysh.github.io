@@ -1,0 +1,143 @@
+/* Introduction : mouvements finis, transform/opacity uniquement pendant l’animation. */
+#kofy-splash {
+  position: fixed; inset: 0; z-index: 2000;
+  display: grid; place-items: center; overflow: hidden; isolation: isolate;
+  color: #f1f3f4; background: #14171c;
+  animation: kofy-intro-exit 2.8s cubic-bezier(.4, 0, .2, 1) both;
+}
+.kofy-intro__art { position: absolute; inset: 0; overflow: hidden; z-index: -1; }
+.kofy-intro__art::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 20%, #14171c88 100%);
+}
+.kofy-intro__fluid {
+  position: absolute; width: clamp(260px, 48vw, 760px); aspect-ratio: 1;
+  border-radius: 38% 62% 66% 34% / 56% 35% 65% 44%;
+  opacity: .75; filter: blur(32px);
+  animation: kofy-fluid 2.8s cubic-bezier(.2, .65, .3, 1) both;
+}
+.kofy-intro__fluid--blue {
+  left: -24%; top: -28%;
+  background: radial-gradient(ellipse at 65% 60%, #8ab4f8 0, #4777d3 25%, #31478044 55%, transparent 72%);
+  --dx: 18vw; --dy: 13vh; --rotation: 28deg;
+}
+.kofy-intro__fluid--mint {
+  right: -24%; bottom: -36%;
+  background: radial-gradient(ellipse at 40% 35%, #a7ffcf 0, #38a7a0 25%, #23555655 55%, transparent 72%);
+  --dx: -18vw; --dy: -12vh; --rotation: -24deg;
+}
+.kofy-intro__fluid--violet {
+  right: -12%; top: -38%;
+  background: radial-gradient(ellipse, #c4b5fd, #806cd466 42%, transparent 70%);
+  --dx: -10vw; --dy: 12vh; --rotation: 20deg;
+}
+.kofy-intro__fluid--gold {
+  bottom: -44%; left: -6%;
+  background: radial-gradient(ellipse, #fdd66399, #f28b8266 36%, transparent 70%);
+  --dx: 5vw; --dy: -10vh; --rotation: -18deg;
+}
+.kofy-intro__stage {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  width: min(90vw, 38rem); padding: 3rem 1rem; text-align: center;
+}
+.kofy-intro__orbit {
+  position: absolute; top: 50%; left: 50%; width: min(76vw, 540px); aspect-ratio: 1;
+  border: 1px solid #b7d7ff16; border-radius: 50%;
+  animation: kofy-orbit 2.8s ease-out both;
+}
+.kofy-intro__bubble {
+  position: absolute; width: 48px; aspect-ratio: 1;
+  border-radius: 38% 62% 56% 44%; border: 1px solid #dcecff66;
+  background: radial-gradient(circle at 28% 22%, #ffffff88, #a8c7fa22 38%, #ffffff05 65%);
+  box-shadow: inset -8px -8px 18px #8ab4f81a, inset 2px 2px 5px #ffffff44, 0 12px 35px #0003;
+}
+.kofy-intro__bubble:nth-child(1) { top: 17%; left: 3%; }
+.kofy-intro__bubble:nth-child(2) { top: 12%; right: 10%; width: 24px; }
+.kofy-intro__bubble:nth-child(3) { bottom: 20%; right: -1%; width: 38px; }
+.kofy-intro__bubble:nth-child(4) { bottom: 0; left: 28%; width: 16px; background-color: #a7ffcf33; }
+.kofy-intro__logo {
+  position: relative; display: grid; place-items: center; width: 148px; aspect-ratio: 1;
+  border-radius: 36%; border: 1px solid #e8f0fe55;
+  background: linear-gradient(135deg, #ffffff25, #ffffff06 60%, #8ab4f818);
+  box-shadow: inset 0 1px 1px #ffffff66, 0 22px 60px #0005, 0 0 100px #8ab4f833;
+  animation: kofy-logo-arrive .85s cubic-bezier(.16, 1, .3, 1) both;
+}
+.kofy-intro__logo::before {
+  content: ''; position: absolute; inset: -16px;
+  border: 1px solid #c2e7ff22; border-top-color: #c2e7ff; border-bottom-color: #81c99599;
+  border-radius: 44% 56% 52% 48%;
+  animation: kofy-halo 2.8s cubic-bezier(.2, .7, .3, 1) both;
+}
+.kofy-intro__logo img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
+.kofy-intro__title {
+  margin: 2.2rem 0 .55rem; color: #f1f3f4;
+  font: 500 clamp(1.7rem, 5vw, 2.4rem)/1.2 Arial, sans-serif; letter-spacing: -.05em;
+  animation: kofy-copy-arrive .75s .16s both;
+}
+.kofy-intro__subtitle {
+  margin: 0; color: #bdc1c6; font: 400 clamp(.8rem, 2.5vw, .95rem)/1.5 Arial, sans-serif;
+  animation: kofy-copy-arrive .75s .24s both;
+}
+.kofy-intro__dots { display: flex; gap: .4rem; margin-top: 1.5rem; }
+.kofy-intro__dots span {
+  width: 6px; height: 6px; border-radius: 50%; background: #8ab4f8;
+  animation: kofy-dot 1.4s ease-in-out both;
+}
+.kofy-intro__dots span:nth-child(2) { background: #f28b82; animation-delay: .1s; }
+.kofy-intro__dots span:nth-child(3) { background: #fdd663; animation-delay: .2s; }
+.kofy-intro__dots span:nth-child(4) { background: #81c995; animation-delay: .3s; }
+.kofy-intro__skip {
+  position: absolute; bottom: max(1rem, env(safe-area-inset-bottom)); right: max(1rem, env(safe-area-inset-right));
+  min-height: 44px; padding: .6rem 1.1rem; border: 1px solid #ffffff30; border-radius: 2rem;
+  color: #e8eaed; background: #ffffff08; font: .85rem Arial, sans-serif; cursor: pointer;
+}
+.kofy-intro__skip:hover { background: #ffffff18; }
+.kofy-intro__replay {
+  min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--k-border); border-radius: 2rem;
+  color: var(--k-muted); background: transparent; font: .8rem var(--k-font); cursor: pointer;
+}
+.kofy-intro__replay:hover { color: var(--k-accent); background: var(--k-surface-raised); }
+.kofy-intro__replay:disabled { opacity: .5; cursor: default; }
+@keyframes kofy-fluid {
+  from { transform: translate(0, 0) rotate(-12deg) scale(.85); }
+  to { transform: translate(var(--dx), var(--dy)) rotate(var(--rotation)) scale(1.18); }
+}
+@keyframes kofy-orbit {
+  from { opacity: 0; transform: translate(-50%, -58%) rotate(-20deg) scale(.9); }
+  25% { opacity: 1; }
+  to { opacity: 1; transform: translate(-50%, -58%) rotate(18deg) scale(1); }
+}
+@keyframes kofy-logo-arrive {
+  from { opacity: 0; transform: translateY(22px) rotate(-12deg) scale(.7); }
+  to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+}
+@keyframes kofy-halo {
+  from { opacity: 0; transform: rotate(-80deg) scale(.8); }
+  25% { opacity: 1; }
+  to { opacity: .8; transform: rotate(140deg) scale(1.04); }
+}
+@keyframes kofy-copy-arrive {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes kofy-dot {
+  0%, 100% { opacity: .6; transform: scale(1); }
+  45% { opacity: 1; transform: scale(1.5) translateY(-3px); }
+}
+@keyframes kofy-intro-exit {
+  0%, 78% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+@media (max-width: 600px) {
+  .kofy-intro__fluid { filter: blur(20px); }
+  .kofy-intro__logo { width: 124px; }
+  .kofy-intro__logo img { width: 80px; height: 80px; }
+}
+@media (max-height: 480px) {
+  .kofy-intro__stage { padding: 1rem; }
+  .kofy-intro__logo { width: 88px; }
+  .kofy-intro__logo img { width: 60px; height: 60px; }
+  .kofy-intro__title { margin-top: 1.2rem; font-size: 1.5rem; }
+  .kofy-intro__dots { margin-top: .7rem; }
+}
+@media (prefers-reduced-motion: reduce) { #kofy-splash { display: none; } }
