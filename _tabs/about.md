@@ -23,46 +23,50 @@ Trois serveurs physiques sous [**Proxmox VE**](https://www.proxmox.com/), héber
 
 <section class="about-server" markdown="1">
 
-<p class="about-server__role">01 · Compute principal</p>
+<p class="about-server__role">01 · Calcul intensif & intelligence artificielle</p>
 
-### HPE ProLiant DL380 Gen10
+### AMD Threadripper PRO · Quad RTX A6000
 
 | Composant | Configuration |
 | :--- | :--- |
-| **Processeurs** | 2 × Intel Xeon Gold 6138 · 40C/80T |
-| **Mémoire** | 384 Go DDR4 ECC |
-| **Stockage** | 16 × 2,4 To SAS 10K |
-| **GPU** | NVIDIA Tesla T4 |
+| **Processeur** | AMD Ryzen Threadripper PRO 7995WX · 96 cœurs / 192 threads |
+| **Mémoire** | 1 To DDR5 ECC RDIMM |
+| **Stockage système** | 2 × 1,92 To NVMe |
+| **Stockage des données** | 8 × 7,68 To NVMe |
+| **GPU** | 4 × NVIDIA RTX A6000 · 48 Go GDDR6 ECC par carte |
+| **Réseau interne** | 100 GbE |
 
 </section>
 
 <section class="about-server" markdown="1">
 
-<p class="about-server__role">02 · GPU & intelligence artificielle</p>
+<p class="about-server__role">02 · Virtualisation & services applicatifs</p>
 
-### Dell PowerEdge R730
+### AMD Threadripper PRO · Compute
 
 | Composant | Configuration |
 | :--- | :--- |
-| **Processeurs** | 2 × Intel Xeon E5-2699v4 · 44C/88T |
-| **Mémoire** | 256 Go DDR4 ECC |
-| **Stockage** | 8 × 4 To SSD + 2 × 2 To NVMe |
-| **GPU** | NVIDIA RTX 2080 |
+| **Processeur** | AMD Ryzen Threadripper PRO 7985WX · 64 cœurs / 128 threads |
+| **Mémoire** | 512 Go DDR5 ECC RDIMM |
+| **Stockage système** | 2 × 1,92 To NVMe |
+| **Stockage des données** | 8 × 7,68 To NVMe |
+| **Réseau interne** | 100 GbE |
 
 </section>
 
 <section class="about-server" markdown="1">
 
-<p class="about-server__role">03 · Services réseau</p>
+<p class="about-server__role">03 · Services réseau & infrastructure</p>
 
-### HPE ProLiant DL360 Gen10
+### AMD Threadripper PRO · Infrastructure
 
 | Composant | Configuration |
 | :--- | :--- |
-| **Processeurs** | 2 × Intel Xeon Silver 4214R · 24C/48T |
-| **Mémoire** | 128 Go DDR4 ECC |
-| **Stockage** | 8 × 1,92 To SSD |
-| **Réseau** | 10 GbE SFP+ |
+| **Processeur** | AMD Ryzen Threadripper PRO 7975WX · 32 cœurs / 64 threads |
+| **Mémoire** | 256 Go DDR5 ECC RDIMM |
+| **Stockage système** | 2 × 1,92 To NVMe |
+| **Stockage des données** | 4 × 3,84 To NVMe |
+| **Réseau interne** | 25 GbE SFP28 |
 
 </section>
 
