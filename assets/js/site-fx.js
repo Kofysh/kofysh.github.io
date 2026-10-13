@@ -1,6 +1,16 @@
 /* Progressive entrance effects. No pointer tracking or hidden content. */
 (function () {
   'use strict';
+  // Les libellés du thème sont générés en majuscules dans le HTML.
+  var navigationLabels = {
+    '/': 'Accueil', '/oteria/': 'OTERIA', '/categories/': 'Catégories',
+    '/tags/': 'Tags', '/archives/': 'Archives', '/about/': 'À propos'
+  };
+  document.querySelectorAll('#sidebar .nav-link').forEach(function (link) {
+    var label = navigationLabels[link.getAttribute('href')];
+    var span = link.querySelector('span');
+    if (label && span) span.textContent = label;
+  });
   var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   var list = document.getElementById('post-list');
   if (!list || document.querySelector('.kofy-hero')) return;
