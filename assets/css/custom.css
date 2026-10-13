@@ -740,7 +740,7 @@ body a:focus-visible, body button:focus-visible, body input:focus-visible {
   body .btn { transition: none; }
 }
 
-/* Écran de démarrage : animation finie, contenu chargé en parallèle. */
+/* Accueil liquide : décor CSS, durée finie, aucune bibliothèque graphique. */
 #kofy-splash {
   position: fixed;
   inset: 0;
@@ -749,37 +749,109 @@ body a:focus-visible, body button:focus-visible, body input:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.75rem;
-  background: #202124;
+  gap: 1.8rem;
+  overflow: hidden;
+  isolation: isolate;
+  background: #17191d;
   color: #e8eaed;
   pointer-events: none;
-  animation: kofy-splash-exit 1.4s ease both;
+  animation: kofy-splash-exit 2.6s cubic-bezier(.4,0,.2,1) both;
 }
+.kofy-splash__liquid {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+}
+.kofy-splash__liquid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 10%, #17191d99 80%);
+}
+.kofy-splash__blob {
+  position: absolute;
+  width: clamp(200px, 35vw, 540px);
+  aspect-ratio: 1;
+  border-radius: 38% 62% 64% 36% / 44% 40% 60% 56%;
+  filter: blur(26px);
+  opacity: .65;
+  will-change: transform, border-radius;
+  animation: kofy-liquid-morph 2.6s ease-in-out both;
+}
+.kofy-splash__blob--blue {
+  top: -12%; left: -8%;
+  background: radial-gradient(circle at 35% 30%, #8ab4f8, #396cc6 45%, #28426800 72%);
+  --liquid-x: 14vw; --liquid-y: 9vh; --liquid-turn: 35deg;
+}
+.kofy-splash__blob--mint {
+  right: -9%; bottom: -20%;
+  background: radial-gradient(circle at 40% 40%, #81c995, #247d7b 45%, #174b4700 72%);
+  --liquid-x: -14vw; --liquid-y: -10vh; --liquid-turn: -50deg;
+}
+.kofy-splash__blob--peach {
+  width: clamp(180px, 25vw, 380px);
+  top: -16%; right: 8%;
+  background: radial-gradient(circle at 40% 35%, #fdd663, #d0787866 50%, #d0787800 75%);
+  --liquid-x: -7vw; --liquid-y: 15vh; --liquid-turn: 65deg;
+  opacity: .4;
+}
+.kofy-splash__blob--violet {
+  width: clamp(160px, 25vw, 380px);
+  bottom: -17%; left: 15%;
+  background: radial-gradient(circle at 45% 40%, #c4b5fd, #726bd080 48%, #726bd000 75%);
+  --liquid-x: 7vw; --liquid-y: -15vh; --liquid-turn: -35deg;
+  opacity: .45;
+}
+.kofy-splash__orbit {
+  position: absolute;
+  width: min(72vw, 620px);
+  height: min(65vh, 440px);
+  z-index: -1;
+  animation: kofy-orbit-drift 2.6s ease-out both;
+}
+.kofy-splash__bubble {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  border-radius: 42% 58% 55% 45%;
+  border: 1px solid #d5e4ff55;
+  background: radial-gradient(circle at 28% 22%, #ffffff70, #8ab4f819 35%, #8ab4f805 65%);
+  box-shadow: inset -8px -9px 20px #8ab4f822, inset 2px 2px 5px #ffffff33, 0 12px 40px #0002;
+}
+.kofy-splash__bubble:nth-child(1) { top: 7%; left: 4%; transform: rotate(-25deg); }
+.kofy-splash__bubble:nth-child(2) { right: 0; top: 32%; width: 34px; height: 34px; }
+.kofy-splash__bubble:nth-child(3) { bottom: 0; left: 30%; width: 22px; height: 22px; }
 .kofy-splash__mark {
   position: relative;
   display: grid;
   place-items: center;
-  width: 7.5rem;
-  height: 7.5rem;
-  animation: kofy-logo-enter .7s cubic-bezier(.2,.8,.2,1) both;
+  width: 144px;
+  height: 144px;
+  border: 1px solid #ffffff24;
+  border-radius: 38%;
+  background: linear-gradient(145deg, #ffffff17, #ffffff03);
+  box-shadow: inset 0 1px 0 #ffffff26, 0 20px 65px #0005, 0 0 85px #8ab4f822;
+  animation: kofy-logo-enter 1s cubic-bezier(.16,1,.3,1) both;
 }
 .kofy-splash__mark::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: conic-gradient(#8ab4f8 0deg 85deg, transparent 85deg 95deg,
-    #81c995 95deg 175deg, transparent 175deg 185deg,
-    #fdd663 185deg 265deg, transparent 265deg 275deg,
-    #f28b82 275deg 355deg, transparent 355deg);
-  animation: kofy-ring-turn 1.2s cubic-bezier(.4,0,.2,1) both;
+  inset: -16px;
+  border: 1px solid #8ab4f830;
+  border-top-color: #c2e7ffaa;
+  border-right-color: #81c99588;
+  border-radius: 44% 56% 52% 48%;
+  animation: kofy-ring-turn 2.6s ease-out both;
 }
 .kofy-splash__mark::after {
   content: '';
   position: absolute;
-  inset: 3px;
-  border-radius: 50%;
-  background: #202124;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 30%, #ffffff20 48%, transparent 65%);
+  background-size: 300% 100%;
+  animation: kofy-glass-sheen 2.2s ease both;
 }
 .kofy-splash__mark img {
   position: relative;
@@ -790,22 +862,40 @@ body a:focus-visible, body button:focus-visible, body input:focus-visible {
   object-fit: cover;
 }
 .kofy-splash__caption {
-  font: 400 1.15rem Arial, sans-serif;
-  letter-spacing: -.02em;
-  animation: kofy-logo-enter .65s .1s ease both;
+  font: 400 clamp(1.2rem, 3vw, 1.5rem) Arial, sans-serif;
+  letter-spacing: -.03em;
+  animation: kofy-logo-enter .9s .12s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes kofy-liquid-morph {
+  0% { transform: translate(0, 0) rotate(0) scale(.85); }
+  65% { border-radius: 64% 36% 38% 62% / 56% 65% 35% 44%; }
+  100% { transform: translate(var(--liquid-x), var(--liquid-y)) rotate(var(--liquid-turn)) scale(1.2); }
+}
+@keyframes kofy-orbit-drift {
+  from { opacity: 0; transform: rotate(-12deg) scale(.85); }
+  30% { opacity: 1; }
+  to { opacity: 1; transform: rotate(8deg) scale(1.06); }
 }
 @keyframes kofy-logo-enter {
-  from { opacity: 0; transform: translateY(10px) scale(.9); }
+  from { opacity: 0; transform: translateY(18px) scale(.8); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes kofy-ring-turn {
-  from { transform: rotate(-140deg); opacity: 0; }
+  from { transform: rotate(-70deg) scale(.85); opacity: 0; }
   25% { opacity: 1; }
-  to { transform: rotate(220deg); opacity: 1; }
+  to { transform: rotate(150deg) scale(1.06); opacity: .7; }
+}
+@keyframes kofy-glass-sheen {
+  from { background-position: 160% 0; }
+  to { background-position: -60% 0; }
 }
 @keyframes kofy-splash-exit {
-  0%, 72% { opacity: 1; visibility: visible; }
+  0%, 76% { opacity: 1; visibility: visible; }
   100% { opacity: 0; visibility: hidden; }
+}
+@media (max-width: 600px) {
+  .kofy-splash__blob { filter: blur(18px); }
+  .kofy-splash__mark { width: 124px; height: 124px; }
 }
 @media (prefers-reduced-motion: reduce) {
   #kofy-splash { display: none; }

@@ -4,8 +4,8 @@
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reducedMotion.matches || document.getElementById('kofy-splash')) return;
   try {
-    if (sessionStorage.getItem('kofy-intro-seen') === '1') return;
-    sessionStorage.setItem('kofy-intro-seen', '1');
+    if (sessionStorage.getItem('kofy-intro-liquid-v2') === '1') return;
+    sessionStorage.setItem('kofy-intro-liquid-v2', '1');
   } catch (_) {
     // Le site reste utilisable lorsque le stockage du navigateur est désactivé.
   }
@@ -16,6 +16,22 @@
   var splash = document.createElement('div');
   splash.id = 'kofy-splash';
   splash.setAttribute('aria-hidden', 'true');
+  var field = document.createElement('div');
+  field.className = 'kofy-splash__liquid';
+  ['blue', 'mint', 'peach', 'violet'].forEach(function (color) {
+    var blob = document.createElement('span');
+    blob.className = 'kofy-splash__blob kofy-splash__blob--' + color;
+    field.appendChild(blob);
+  });
+  var orbit = document.createElement('div');
+  orbit.className = 'kofy-splash__orbit';
+  for (var i = 0; i < 3; i++) {
+    var bubble = document.createElement('span');
+    bubble.className = 'kofy-splash__bubble';
+    orbit.appendChild(bubble);
+  }
+  splash.appendChild(field);
+  splash.appendChild(orbit);
   var mark = document.createElement('div');
   mark.className = 'kofy-splash__mark';
   var logo = document.createElement('img');
@@ -52,5 +68,5 @@
   reducedMotion.addEventListener('change', onMotionChange);
   document.body.appendChild(splash);
   // Secours si une extension empêche l’événement de fin d’animation.
-  timer = setTimeout(finish, 1800);
+  timer = setTimeout(finish, 3000);
 })();
