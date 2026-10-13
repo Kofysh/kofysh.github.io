@@ -739,3 +739,74 @@ body a:focus-visible, body button:focus-visible, body input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   body .btn { transition: none; }
 }
+
+/* Écran de démarrage : animation finie, contenu chargé en parallèle. */
+#kofy-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  background: #202124;
+  color: #e8eaed;
+  pointer-events: none;
+  animation: kofy-splash-exit 1.4s ease both;
+}
+.kofy-splash__mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 7.5rem;
+  height: 7.5rem;
+  animation: kofy-logo-enter .7s cubic-bezier(.2,.8,.2,1) both;
+}
+.kofy-splash__mark::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(#8ab4f8 0deg 85deg, transparent 85deg 95deg,
+    #81c995 95deg 175deg, transparent 175deg 185deg,
+    #fdd663 185deg 265deg, transparent 265deg 275deg,
+    #f28b82 275deg 355deg, transparent 355deg);
+  animation: kofy-ring-turn 1.2s cubic-bezier(.4,0,.2,1) both;
+}
+.kofy-splash__mark::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #202124;
+}
+.kofy-splash__mark img {
+  position: relative;
+  z-index: 1;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.kofy-splash__caption {
+  font: 400 1.15rem Arial, sans-serif;
+  letter-spacing: -.02em;
+  animation: kofy-logo-enter .65s .1s ease both;
+}
+@keyframes kofy-logo-enter {
+  from { opacity: 0; transform: translateY(10px) scale(.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes kofy-ring-turn {
+  from { transform: rotate(-140deg); opacity: 0; }
+  25% { opacity: 1; }
+  to { transform: rotate(220deg); opacity: 1; }
+}
+@keyframes kofy-splash-exit {
+  0%, 72% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #kofy-splash { display: none; }
+}
