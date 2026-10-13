@@ -669,7 +669,6 @@ body .btn:disabled, body .btn.disabled {
 }
 #sidebar-trigger, #search-trigger, #mode-toggle,
 #back-to-top, .share-wrapper .share-icons > a {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.75rem;
