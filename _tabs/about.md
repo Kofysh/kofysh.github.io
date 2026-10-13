@@ -40,33 +40,31 @@ Trois serveurs physiques sous [**Proxmox VE**](https://www.proxmox.com/), héber
 
 <section class="about-server" markdown="1">
 
-<p class="about-server__role">02 · Virtualisation & services applicatifs</p>
+<p class="about-server__role">02 · GPU & intelligence artificielle</p>
 
-### AMD Threadripper PRO · Compute
+### Dell PowerEdge R730
 
 | Composant | Configuration |
 | :--- | :--- |
-| **Processeur** | AMD Ryzen Threadripper PRO 7985WX · 64 cœurs / 128 threads |
-| **Mémoire** | 384 Go DDR5 ECC RDIMM |
-| **Stockage système** | 2 × 1,92 To NVMe |
-| **Stockage des données** | 8 × 7,68 To SSD SAS |
-| **Réseau interne** | 10 GbE |
+| **Processeurs** | 2 × Intel Xeon E5-2699v4 · 44C/88T |
+| **Mémoire** | 256 Go DDR4 ECC |
+| **Stockage** | 8 × 4 To SSD + 2 × 2 To NVMe |
+| **GPU** | NVIDIA RTX 2080 |
 
 </section>
 
 <section class="about-server" markdown="1">
 
-<p class="about-server__role">03 · Services réseau & infrastructure</p>
+<p class="about-server__role">03 · Services réseau</p>
 
-### AMD Threadripper PRO · Infrastructure
+### HPE ProLiant DL360 Gen10
 
 | Composant | Configuration |
 | :--- | :--- |
-| **Processeur** | AMD Ryzen Threadripper PRO 7975WX · 32 cœurs / 64 threads |
-| **Mémoire** | 384 Go DDR5 ECC RDIMM |
-| **Stockage système** | 2 × 1,92 To NVMe |
-| **Stockage des données** | 4 × 3,84 To SSD SAS |
-| **Réseau interne** | 10 GbE |
+| **Processeurs** | 2 × Intel Xeon Silver 4214R · 24C/48T |
+| **Mémoire** | 128 Go DDR4 ECC |
+| **Stockage** | 8 × 1,92 To SSD |
+| **Réseau** | 10 GbE SFP+ |
 
 </section>
 
